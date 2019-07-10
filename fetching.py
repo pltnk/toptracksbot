@@ -59,11 +59,12 @@ def fetch_ids(playlist):
 
 
 def get_info(keyphrase):
-    res = requests.get(f'http://ws.audioscrobbler.com/2.0/?method=artist.getinfo&artist={keyphrase}&api_key={lastfm_api}&format=json')
+    res = requests.get(f'http://ws.audioscrobbler.com/2.0/?method=artist.getinfo&artist={keyphrase}&autocorrect[1]&api_key={lastfm_api}&format=json')
     soup = bs4.BeautifulSoup(res.content, 'lxml')
     soup_dict = json.loads(soup.text)
     name = soup_dict['artist']['name']
     summary = soup_dict['artist']['bio']['summary']
     link = soup_dict['artist']['url']
-    info = f'{name}\n{summary}: {link}'
+    logging.info(f'Collecting short bio for {name}')
+    info = f'{name}\n\n{summary}: {link}'
     return info

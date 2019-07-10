@@ -33,7 +33,7 @@ def start(update, context):
 
 
 def send_top(update, context):
-    logging.info(f'Incoming message: args={context.args}, text="{update.message.text}"')
+    logging.info(f'(send_top) Incoming message: args={context.args}, text="{update.message.text}"')
     if update.message.text.startswith('/three '):
         number = 3
     elif update.message.text.startswith('/ten '):
@@ -52,7 +52,7 @@ def send_top(update, context):
 
 
 def send_info(update, context):
-    logging.info(f'Incoming message: args={context.args}, text="{update.message.text}"')
+    logging.info(f'(send_info) Incoming message: args={context.args}, text="{update.message.text}"')
     if len(context.args) == 0:
         context.bot.send_message(chat_id=update.message.chat_id,
                                  text=f'Command must be followed by artist name.\nExample: /info Nirvana')
