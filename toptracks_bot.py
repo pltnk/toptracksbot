@@ -52,25 +52,27 @@ def send_top(update, context):
 
 
 def send_info(update, context):
-    # todo: send photo, short bio and three buttons for top3, top5 and top10
-    pass
+    logging.info(f'Incoming message: args={context.args}, text="{update.message.text}"')
+    if len(context.args) == 0:
+        context.bot.send_message(chat_id=update.message.chat_id,
+                                 text=f'Command must be followed by artist name.\nExample: /info Nirvana')
+    else:
+        keyphrase = ' '.join(context.args)
+        context.bot.send_chat_action(chat_id=update.message.chat_id, action=ChatAction.TYPING)
+        info = fetching.get_info(keyphrase)
+        context.bot.send_message(chat_id=update.message.chat_id, text=info)
 
 
 def send_help(update, context):
     message = 'Enter an artist or a band name to get their top tracks of all time ' \
               'according to last.fm charts.\nBy default this bot sends top five tracks.' \
               '\n/three <artist> - get top three\n/five <artist> - get top five' \
-              '\n/ten <artist> - get top ten\n/help - show this message.'
+              '\n/ten <artist> - get top ten\n/info <artist> - get short bio of an artist\n/help - show this message.'
     context.bot.send_message(chat_id=update.message.chat_id, text=message)
 
 
 def unknown(update, context):
     context.bot.send_message(chat_id=update.message.chat_id, text='Unknown command, try /help.')
-
-
-def get_info(keyphrase):
-    correct_name = ''
-    return correct_name
 
 
 def create_top(keyphrase, number=5):
@@ -92,6 +94,7 @@ def create_top(keyphrase, number=5):
 start_handler = CommandHandler('start', start)
 default_handler = MessageHandler(Filters.text, send_top)
 top_handler = CommandHandler(['three', 'five', 'ten'], send_top)
+info_handler = CommandHandler('info', send_info)
 # inline_caps_handler = InlineQueryHandler(inline_caps)
 help_handler = CommandHandler('help', send_help)
 unknown_handler = MessageHandler(Filters.command, unknown)
@@ -99,12 +102,16 @@ unknown_handler = MessageHandler(Filters.command, unknown)
 dispatcher.add_handler(start_handler)
 dispatcher.add_handler(default_handler)
 dispatcher.add_handler(top_handler)
+dispatcher.add_handler(info_handler)
 # dispatcher.add_handler(inline_caps_handler)
 dispatcher.add_handler(help_handler)
 dispatcher.add_handler(unknown_handler)
 
-updater.start_polling()
-updater.idle()
-# todo: add support of top3, top5, top10. top5 is default. Documentation. Audio. Exceptions.
+try:
+    logging.info('Starting bot...')
+    updater.start_polling()
+    updater.idle()
+except Exception as e:
+    logging.error(f'Unable to start a bot. {e}')
 
 

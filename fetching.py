@@ -4,6 +4,7 @@ import logging
 import re
 import requests
 
+
 with open('api_keys.txt', 'r') as ak:
     keys = ak.readlines()
     bot_api = keys[0].strip()
@@ -55,3 +56,14 @@ def fetch_ids(playlist):
             logging.info(f'Adding YouTube id for: {item}')
             ids.append(link['href'][9:])
     return ids
+
+
+def get_info(keyphrase):
+    res = requests.get(f'http://ws.audioscrobbler.com/2.0/?method=artist.getinfo&artist={keyphrase}&api_key={lastfm_api}&format=json')
+    soup = bs4.BeautifulSoup(res.content, 'lxml')
+    soup_dict = json.loads(soup.text)
+    name = soup_dict['artist']['name']
+    summary = soup_dict['artist']['bio']['summary']
+    link = soup_dict['artist']['url']
+    info = f'{name}\n{summary}: {link}'
+    return info
