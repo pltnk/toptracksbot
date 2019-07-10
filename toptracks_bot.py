@@ -46,7 +46,7 @@ def send_top(update, context):
                                  text=f'Command must be followed by artist name.\nExample: {keyphrase.strip()} Nirvana')
     else:
         context.bot.send_chat_action(chat_id=update.message.chat_id, action=ChatAction.TYPING)
-        top = create_top(keyphrase, number)
+        top = fetching.create_top(keyphrase, number)
         for track in top:
             context.bot.send_message(chat_id=update.message.chat_id, text=f'youtube.com/watch?v={track}')
 
@@ -73,22 +73,6 @@ def send_help(update, context):
 
 def unknown(update, context):
     context.bot.send_message(chat_id=update.message.chat_id, text='Unknown command, try /help.')
-
-
-def create_top(keyphrase, number=5):
-    try:
-        playlist = fetching.get_playlist_api(keyphrase, number)
-    except Exception as e:
-        logging.warning(e)
-        logging.info('Creating playlist without API')
-        playlist = fetching.get_playlist(keyphrase, number)
-    try:
-        ids = fetching.fetch_ids_api(playlist)
-    except Exception as e:
-        logging.warning(e)
-        logging.info('Fetching YouTube ids without API')
-        ids = fetching.fetch_ids(playlist)
-    return ids
 
 
 start_handler = CommandHandler('start', start)

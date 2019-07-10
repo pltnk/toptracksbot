@@ -12,6 +12,22 @@ with open('api_keys.txt', 'r') as ak:
     youtube_api = keys[2].strip()
 
 
+def create_top(keyphrase, number=5):
+    try:
+        playlist = get_playlist_api(keyphrase, number)
+    except Exception as e:
+        logging.warning(e)
+        logging.info('Creating playlist without API')
+        playlist = get_playlist(keyphrase, number)
+    try:
+        ids = fetch_ids_api(playlist)
+    except Exception as e:
+        logging.warning(e)
+        logging.info('Fetching YouTube ids without API')
+        ids = fetch_ids(playlist)
+    return ids
+
+
 def get_playlist_api(keyphrase, number):
     res = requests.get(f'http://ws.audioscrobbler.com/2.0/?method=artist.gettoptracks&artist={keyphrase}&limit=10&autocorrect[1]&api_key={lastfm_api}')
     res.raise_for_status()
@@ -66,5 +82,5 @@ def get_info(keyphrase):
     summary = soup_dict['artist']['bio']['summary']
     link = soup_dict['artist']['url']
     logging.info(f'Collecting short bio for {name}')
-    info = f'{name}\n\n{summary}: {link}'
+    info = f'{summary}: {link}'
     return info
