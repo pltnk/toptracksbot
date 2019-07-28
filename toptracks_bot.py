@@ -12,13 +12,16 @@ from telegram.ext import Updater
 
 
 TOKEN = f'{fetching.bot_api}'
+# REQUEST_KWARGS = {
+#     'proxy_url': 'socks5://orbtl.s5.opennetwork.cc:999',
+#     # Optional, if you need authentication:
+#     'urllib3_proxy_kwargs': {
+#         'username': '147578754',
+#         'password': 'cTv8N72n',
+#     }
+# }
 REQUEST_KWARGS = {
-    'proxy_url': 'socks5://orbtl.s5.opennetwork.cc:999',
-    # Optional, if you need authentication:
-    'urllib3_proxy_kwargs': {
-        'username': '147578754',
-        'password': 'cTv8N72n',
-    }
+    'proxy_url': 'socks5://178.197.248.213:1080'
 }
 
 updater = Updater(token=TOKEN, use_context=True, request_kwargs=REQUEST_KWARGS)
