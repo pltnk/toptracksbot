@@ -5,15 +5,9 @@ import os
 import re
 import requests
 
-
-# with open('api_keys.txt', 'r') as ak:
-#     keys = ak.readlines()
-#     bot_api = keys[0].strip()
-#     lastfm_api = keys[1].strip()
-#     youtube_api = keys[2].strip()
-
 lastfm_api = os.getenv('LASTFM_API')
 youtube_api = os.getenv('YOUTUBE_API')
+
 
 def create_top(keyphrase, number=5):
     try:

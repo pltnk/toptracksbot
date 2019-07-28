@@ -12,7 +12,6 @@ from telegram.ext import Updater
 # from telegram.ext import InlineQueryHandler
 
 TOKEN = os.getenv('BOT_TOKEN')
-# TOKEN = f'{fetching.bot_api}'
 # REQUEST_KWARGS = {
 #     'proxy_url': 'socks5://orbtl.s5.opennetwork.cc:999',
 #     # Optional, if you need authentication:
@@ -21,13 +20,13 @@ TOKEN = os.getenv('BOT_TOKEN')
 #         'password': 'cTv8N72n',
 #     }
 # }
-REQUEST_KWARGS = {
-    'proxy_url': 'socks5://178.197.248.213:1080'
-}
+REQUEST_KWARGS = {'proxy_url': 'socks5://178.197.248.213:1080'}
+MODE = os.getenv('BOT_MODE')
+PORT = int(os.environ.get('PORT', '8443'))
+HEROKU_APP = os.getenv('HEROKU_APP')
 
 updater = Updater(token=TOKEN, use_context=True, request_kwargs=REQUEST_KWARGS)
 dispatcher = updater.dispatcher
-
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                     level=logging.INFO)
 
@@ -98,9 +97,15 @@ dispatcher.add_handler(unknown_handler)
 
 def main():
     try:
-        logging.info('Starting bot...')
-        updater.start_polling()
-        updater.idle()
+        if MODE == 'prod':
+            updater.start_webhook(listen="0.0.0.0",
+                                  port=PORT,
+                                  url_path=TOKEN)
+            updater.bot.set_webhook(f"https://{HEROKU_APP}.herokuapp.com/{TOKEN}")
+        else:
+            logging.info('Starting bot...')
+            updater.start_polling()
+            updater.idle()
     except Exception as e:
         logging.error(f'Unable to start a bot. {e}')
 
