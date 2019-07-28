@@ -94,11 +94,17 @@ dispatcher.add_handler(info_handler)
 dispatcher.add_handler(help_handler)
 dispatcher.add_handler(unknown_handler)
 
-try:
-    logging.info('Starting bot...')
-    updater.start_polling()
-    updater.idle()
-except Exception as e:
-    logging.error(f'Unable to start a bot. {e}')
+
+def main():
+    try:
+        logging.info('Starting bot...')
+        updater.start_polling()
+        updater.idle()
+    except Exception as e:
+        logging.error(f'Unable to start a bot. {e}')
+
+
+if __name__ == '__main__':
+    main()
 
 
