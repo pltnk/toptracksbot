@@ -1,5 +1,6 @@
 import fetching
 import logging
+import os
 import re
 
 from telegram import ChatAction
@@ -10,8 +11,8 @@ from telegram.ext import Updater
 # from telegram import InlineQueryResultArticle, InputTextMessageContent
 # from telegram.ext import InlineQueryHandler
 
-
-TOKEN = f'{fetching.bot_api}'
+TOKEN = os.getenv('BOT_TOKEN')
+# TOKEN = f'{fetching.bot_api}'
 # REQUEST_KWARGS = {
 #     'proxy_url': 'socks5://orbtl.s5.opennetwork.cc:999',
 #     # Optional, if you need authentication:
