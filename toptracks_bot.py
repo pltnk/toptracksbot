@@ -38,6 +38,7 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
 
 
 def start(update, context):
+    logging.info(f'(start) Incoming message: args={context.args}, text="{update.message.text}"')
     context.bot.send_message(chat_id=update.message.chat_id, text="Enter an artist or a band name.")
 
 
@@ -80,6 +81,7 @@ def send_info(update, context):
 
 
 def send_help(update, context):
+    logging.info(f'(send_help) Incoming message: args={context.args}, text="{update.message.text}"')
     message = 'Enter an artist or a band name to get their top tracks of all time ' \
               'according to last.fm charts.\nBy default this bot sends top three tracks.' \
               '\n/five <artist> - get top five\n/ten <artist> - get top ten' \
@@ -88,6 +90,7 @@ def send_help(update, context):
 
 
 def unknown(update, context):
+    logging.info(f'(unknown) Incoming message: args={context.args}, text="{update.message.text}"')
     context.bot.send_message(chat_id=update.message.chat_id, text='Unknown command, try /help.')
 
 
