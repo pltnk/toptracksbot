@@ -37,12 +37,12 @@ def start(update, context):
 
 def send_top(update, context):
     logging.info(f'(send_top) Incoming message: args={context.args}, text="{update.message.text}"')
-    if update.message.text.startswith('/three '):
-        number = 3
+    if update.message.text.startswith('/five '):
+        number = 5
     elif update.message.text.startswith('/ten '):
         number = 10
     else:
-        number = 5
+        number = 3
     keyphrase = ' '.join(context.args) if context.args else update.message.text
     if re.compile(r'^/(three|five|ten)\s*$').search(keyphrase):
         context.bot.send_message(chat_id=update.message.chat_id,
@@ -68,9 +68,9 @@ def send_info(update, context):
 
 def send_help(update, context):
     message = 'Enter an artist or a band name to get their top tracks of all time ' \
-              'according to last.fm charts.\nBy default this bot sends top five tracks.' \
-              '\n/three <artist> - get top three\n/five <artist> - get top five' \
-              '\n/ten <artist> - get top ten\n/info <artist> - get short bio of an artist\n/help - show this message.'
+              'according to last.fm charts.\nBy default this bot sends top three tracks.' \
+              '\n/five <artist> - get top five\n/ten <artist> - get top ten' \
+              '\n/info <artist> - get short bio of an artist\n/help - show this message.'
     context.bot.send_message(chat_id=update.message.chat_id, text=message)
 
 
