@@ -25,7 +25,8 @@ MODE = os.getenv('BOT_MODE')
 PORT = int(os.environ.get('PORT', '8443'))
 HEROKU_APP = os.getenv('HEROKU_APP')
 
-updater = Updater(token=TOKEN, use_context=True, request_kwargs=REQUEST_KWARGS)
+# updater = Updater(token=TOKEN, use_context=True, request_kwargs=REQUEST_KWARGS)
+updater = Updater(token=TOKEN, use_context=True)
 dispatcher = updater.dispatcher
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                     level=logging.INFO)
