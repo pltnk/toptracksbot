@@ -55,9 +55,16 @@ def send_top(update, context):
                                  text=f'Command must be followed by artist name.\nExample: {keyphrase.strip()} Nirvana')
     else:
         context.bot.send_chat_action(chat_id=update.message.chat_id, action=ChatAction.TYPING)
-        top = fetching.create_top(keyphrase, number)
-        for track in top:
-            context.bot.send_message(chat_id=update.message.chat_id, text=f'youtube.com/watch?v={track}')
+        try:
+            top = fetching.create_top(keyphrase, number)
+            for track in top:
+                context.bot.send_message(chat_id=update.message.chat_id, text=f'youtube.com/watch?v={track}')
+        except Exception as e:
+            logging.error(e)
+            context.bot.send_message(chat_id=update.message.chat_id,
+                                     text=f'An error occurred, try /help.'
+                                          f'\nMost likely it was impossible to find this artist on last.fm, '
+                                          f'make sure this name is correct.')
 
 
 def send_info(update, context):
