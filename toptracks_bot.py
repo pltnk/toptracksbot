@@ -20,7 +20,7 @@ TOKEN = os.getenv('BOT_TOKEN')
 #         'password': 'cTv8N72n',
 #     }
 # }
-REQUEST_KWARGS = {'proxy_url': 'socks5://178.197.248.213:1080'}
+# REQUEST_KWARGS = {'proxy_url': 'socks5://178.197.248.213:1080'}
 MODE = os.getenv('BOT_MODE')
 PORT = int(os.environ.get('PORT', '8443'))
 HEROKU_APP = os.getenv('HEROKU_APP')
