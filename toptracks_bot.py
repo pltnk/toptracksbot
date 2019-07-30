@@ -12,6 +12,8 @@ from telegram.ext import Updater
 # from telegram.ext import InlineQueryHandler
 
 TOKEN = os.getenv('BOT_TOKEN')
+
+# proxy settings
 # REQUEST_KWARGS = {
 #     'proxy_url': 'socks5://orbtl.s5.opennetwork.cc:999',
 #     # Optional, if you need authentication:
@@ -21,11 +23,14 @@ TOKEN = os.getenv('BOT_TOKEN')
 #     }
 # }
 # REQUEST_KWARGS = {'proxy_url': 'socks5://178.197.248.213:1080'}
+
 MODE = os.getenv('BOT_MODE')
 PORT = int(os.environ.get('PORT', '8443'))
 HEROKU_APP = os.getenv('HEROKU_APP')
 
+# updater that uses proxy
 # updater = Updater(token=TOKEN, use_context=True, request_kwargs=REQUEST_KWARGS)
+
 updater = Updater(token=TOKEN, use_context=True)
 dispatcher = updater.dispatcher
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -50,9 +55,16 @@ def send_top(update, context):
                                  text=f'Command must be followed by artist name.\nExample: {keyphrase.strip()} Nirvana')
     else:
         context.bot.send_chat_action(chat_id=update.message.chat_id, action=ChatAction.TYPING)
-        top = fetching.create_top(keyphrase, number)
-        for track in top:
-            context.bot.send_message(chat_id=update.message.chat_id, text=f'youtube.com/watch?v={track}')
+        try:
+            top = fetching.create_top(keyphrase, number)
+            for track in top:
+                context.bot.send_message(chat_id=update.message.chat_id, text=f'youtube.com/watch?v={track}')
+        except Exception as e:
+            logging.error(e)
+            context.bot.send_message(chat_id=update.message.chat_id,
+                                     text=f'An error occurred, try /help.'
+                                          f'\nMost likely it was impossible to find this artist on last.fm, '
+                                          f'make sure this name is correct.')
 
 
 def send_info(update, context):
