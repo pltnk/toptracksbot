@@ -12,6 +12,8 @@ from telegram.ext import Updater
 # from telegram.ext import InlineQueryHandler
 
 TOKEN = os.getenv('BOT_TOKEN')
+
+# proxy settings
 # REQUEST_KWARGS = {
 #     'proxy_url': 'socks5://orbtl.s5.opennetwork.cc:999',
 #     # Optional, if you need authentication:
@@ -21,11 +23,14 @@ TOKEN = os.getenv('BOT_TOKEN')
 #     }
 # }
 # REQUEST_KWARGS = {'proxy_url': 'socks5://178.197.248.213:1080'}
+
 MODE = os.getenv('BOT_MODE')
 PORT = int(os.environ.get('PORT', '8443'))
 HEROKU_APP = os.getenv('HEROKU_APP')
 
+# updater that uses proxy
 # updater = Updater(token=TOKEN, use_context=True, request_kwargs=REQUEST_KWARGS)
+
 updater = Updater(token=TOKEN, use_context=True)
 dispatcher = updater.dispatcher
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
