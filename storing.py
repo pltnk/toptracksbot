@@ -2,8 +2,10 @@ import fetching
 from datetime import datetime
 import logging
 import re
+import json
 
-db = {}  # json file to store data
+with open('database.json', 'r') as db:
+    data = json.load(db)
 
 pl = ['Smells Like Teen Spirit', 'Come as You Are', 'Lithium', 'In Bloom', 'Heart-Shaped Box']
 ids = ['hTWKbfoikeg', 'vabnZ9-ex7o', 'pkcJEvMcnEg', 'PbgKEjNBHqM', 'n6P0SitRwy8']
@@ -19,14 +21,16 @@ def combine(playlist: list, ids: list) -> dict:
     return tracks
 
 
-def process(keyphrase: str, db: dict) -> dict:
+def process(keyphrase: str, data: dict) -> dict:
     try:
         name = fetching.get_info(keyphrase, name_only=True).lower()
     except Exception as e:
         logging.debug(e)
         name = keyphrase.lower()
-    if name not in db or db['name']['date']:  # add delta
+    if name not in data or data[name]['date'] == 0:  # add delta
         playlist, ids = fetching.create_top(keyphrase, number=10, ids_only=False)
-        tracks = combine(pl, ids)
-        db.setdefault(name, {'tracks': tracks, 'date': datetime.now()})
-    return db[name]['tracks']
+        tracks = combine(playlist, ids)
+        data.setdefault(name, {'tracks': tracks, 'date': 1})
+        with open('database.json', 'w') as db:
+            json.dump(data, db)
+    return data[name]['tracks']
