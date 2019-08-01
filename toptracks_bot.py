@@ -3,6 +3,7 @@ import logging
 import os
 import re
 
+from storing import Database
 from telegram import ChatAction
 from telegram.ext import CommandHandler
 from telegram.ext import MessageHandler, Filters
@@ -12,7 +13,7 @@ from telegram.ext import Updater
 # from telegram.ext import InlineQueryHandler
 
 TOKEN = os.getenv('BOT_TOKEN')
-
+DB = Database('database.json')
 # proxy settings
 # REQUEST_KWARGS = {
 #     'proxy_url': 'socks5://orbtl.s5.opennetwork.cc:999',
@@ -22,16 +23,16 @@ TOKEN = os.getenv('BOT_TOKEN')
 #         'password': 'cTv8N72n',
 #     }
 # }
-# REQUEST_KWARGS = {'proxy_url': 'socks5://178.197.248.213:1080'}
+REQUEST_KWARGS = {'proxy_url': 'socks5://178.197.248.213:1080'}
 
 MODE = os.getenv('BOT_MODE')
 PORT = int(os.environ.get('PORT', '8443'))
 HEROKU_APP = os.getenv('HEROKU_APP')
 
 # updater that uses proxy
-# updater = Updater(token=TOKEN, use_context=True, request_kwargs=REQUEST_KWARGS)
+updater = Updater(token=TOKEN, use_context=True, request_kwargs=REQUEST_KWARGS)
 
-updater = Updater(token=TOKEN, use_context=True)
+# updater = Updater(token=TOKEN, use_context=True)
 dispatcher = updater.dispatcher
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                     level=logging.INFO)
@@ -57,15 +58,22 @@ def send_top(update, context):
     else:
         context.bot.send_chat_action(chat_id=update.message.chat_id, action=ChatAction.TYPING)
         try:
-            top = fetching.create_top(keyphrase, number)
-            for track in top:
-                context.bot.send_message(chat_id=update.message.chat_id, text=f'youtube.com/watch?v={track}')
+            top = DB.process(keyphrase)
+            keys = list(top.keys())
+            for i in range(0, number):
+                context.bot.send_message(chat_id=update.message.chat_id, text=f'{top[keys[i]]}')
         except Exception as e:
-            logging.error(e)
-            context.bot.send_message(chat_id=update.message.chat_id,
-                                     text=f'An error occurred, try /help.'
-                                          f'\nMost likely it was impossible to find this artist on last.fm, '
-                                          f'make sure this name is correct.')
+            logging.info(e)
+            try:
+                top = fetching.create_top(keyphrase, number)
+                for track in top:
+                    context.bot.send_message(chat_id=update.message.chat_id, text=f'youtube.com/watch?v={track}')
+            except Exception as e:
+                logging.error(e)
+                context.bot.send_message(chat_id=update.message.chat_id,
+                                         text=f'An error occurred, try /help.'
+                                              f'\nMost likely it was impossible to find this artist on last.fm, '
+                                              f'make sure this name is correct.')
 
 
 def send_info(update, context):
