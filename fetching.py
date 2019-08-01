@@ -4,12 +4,13 @@ import logging
 import os
 import re
 import requests
+from typing import Union
 
 lastfm_api = os.getenv('LASTFM_API')
 youtube_api = os.getenv('YOUTUBE_API')
 
 
-def create_top(keyphrase: str, number: int = 5, ids_only: bool = True):
+def create_top(keyphrase: str, number: int = 5, ids_only: bool = True) -> Union[list, tuple]:
     try:
         playlist = get_playlist_api(keyphrase, number)
     except Exception as e:
@@ -28,7 +29,7 @@ def create_top(keyphrase: str, number: int = 5, ids_only: bool = True):
         return playlist, ids
 
 
-def get_playlist_api(keyphrase: str, number: int):
+def get_playlist_api(keyphrase: str, number: int) -> list:
     res = requests.get(f'http://ws.audioscrobbler.com/2.0/?method=artist.gettoptracks&artist={keyphrase}&limit=10&autocorrect[1]&api_key={lastfm_api}')
     res.raise_for_status()
     soup = bs4.BeautifulSoup(res.content, 'lxml')
@@ -38,7 +39,7 @@ def get_playlist_api(keyphrase: str, number: int):
     return playlist
 
 
-def get_playlist(keyphrase: str, number: int):
+def get_playlist(keyphrase: str, number: int) -> list:
     res = requests.get(f'https://www.last.fm/ru/music/{keyphrase}/+tracks?date_preset=ALL')
     res.raise_for_status()
     soup = bs4.BeautifulSoup(res.content, 'lxml')
@@ -48,7 +49,7 @@ def get_playlist(keyphrase: str, number: int):
     return playlist
 
 
-def fetch_ids_api(playlist: list):
+def fetch_ids_api(playlist: list) -> list:
     ids = []
     for item in playlist:
         page = requests.get(f'https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=1&q={item}&key={youtube_api}')
@@ -61,7 +62,7 @@ def fetch_ids_api(playlist: list):
     return ids
 
 
-def fetch_ids(playlist: list):
+def fetch_ids(playlist: list) -> list:
     ids = []
     for item in playlist:
         page = requests.get(f'https://www.youtube.com/results?search_query={item}')
@@ -74,7 +75,7 @@ def fetch_ids(playlist: list):
     return ids
 
 
-def get_info(keyphrase: str, name_only: bool = False):
+def get_info(keyphrase: str, name_only: bool = False) -> str:
     res = requests.get(f'http://ws.audioscrobbler.com/2.0/?method=artist.getinfo&artist={keyphrase}&autocorrect[1]&api_key={lastfm_api}&format=json')
     res.raise_for_status()
     soup = bs4.BeautifulSoup(res.content, 'lxml')

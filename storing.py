@@ -9,7 +9,7 @@ pl = ['Smells Like Teen Spirit', 'Come as You Are', 'Lithium', 'In Bloom', 'Hear
 ids = ['hTWKbfoikeg', 'vabnZ9-ex7o', 'pkcJEvMcnEg', 'PbgKEjNBHqM', 'n6P0SitRwy8']
 
 
-def combine(playlist: list, ids: list):
+def combine(playlist: list, ids: list) -> dict:
     tracks = {}
     regex = re.compile(r'^(.*\s-\s)(.*)')
     playlist = [regex.match(item).group(2).lower() for item in playlist]
@@ -19,14 +19,14 @@ def combine(playlist: list, ids: list):
     return tracks
 
 
-def process(keyphrase: str, db: dict):
+def process(keyphrase: str, db: dict) -> dict:
     try:
         name = fetching.get_info(keyphrase, name_only=True).lower()
     except Exception as e:
         logging.debug(e)
         name = keyphrase.lower()
     if name not in db or db['name']['date']:  # add delta
-        pl, ids = fetching.create_top(keyphrase, number=10, ids_only=False)
+        playlist, ids = fetching.create_top(keyphrase, number=10, ids_only=False)
         tracks = combine(pl, ids)
         db.setdefault(name, {'tracks': tracks, 'date': datetime.now()})
     return db[name]['tracks']
