@@ -23,8 +23,9 @@ class Database:
         self.__init__(self.file)
 
     @staticmethod
-    def combine(playlist: list, ids: list) -> dict:
+    def combine(keyphrase) -> dict:
         tracks = {}
+        playlist, ids = fetching.create_top(keyphrase, number=10, ids_only=False)
         regex = re.compile(r'^(.*\s-\s)(.*)')
         playlist = [regex.match(item).group(2).lower() for item in playlist]
         links = [f'youtube.com/watch?v={item}' for item in ids]
@@ -38,14 +39,14 @@ class Database:
         except Exception as e:
             logging.debug(e)
             name = keyphrase.lower()
-        if name not in self.data or self.data[name]['date'] == 1:  # add delta:
-            playlist, ids = fetching.create_top(keyphrase, number=10, ids_only=False)
-            tracks = self.combine(playlist, ids)
-            if self.data[name]['date'] == 1:  # add delta:
-                self.data[name]['tracks'] = tracks
-                self.data[name]['date'] = 0
+        if name not in self.data:
+            entry = {name: {'tracks': self.combine(name), 'date': datetime.strftime(datetime.now(), '%Y-%m-%d')}}
+            self.add(entry)
+        else:
+            last_updated = datetime.strptime(self.data[name]['date'], '%Y-%m-%d')
+            delta = datetime.now() - last_updated
+            if delta.days > 30:
+                self.data[name]['tracks'] = self.combine(name)
+                self.data[name]['date'] = datetime.strftime(datetime.now(), '%Y-%m-%d')
                 self.rewrite()
-            else:
-                entry = {name: {'tracks': tracks, 'date': 1}}
-                self.add(entry)
         return self.data[name]['tracks']
