@@ -9,7 +9,7 @@ lastfm_api = os.getenv('LASTFM_API')
 youtube_api = os.getenv('YOUTUBE_API')
 
 
-def create_top(keyphrase, number=5):
+def create_top(keyphrase, number=5, ids_only=False):
     try:
         playlist = get_playlist_api(keyphrase, number)
     except Exception as e:
@@ -22,7 +22,10 @@ def create_top(keyphrase, number=5):
         logging.warning(e)
         logging.info('Fetching YouTube ids without API')
         ids = fetch_ids(playlist)
-    return ids
+    if ids_only:
+        return ids
+    else:
+        return playlist, ids
 
 
 def get_playlist_api(keyphrase, number):
