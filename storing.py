@@ -7,9 +7,6 @@ import json
 with open('database.json', 'r') as db:
     data = json.load(db)
 
-pl = ['Smells Like Teen Spirit', 'Come as You Are', 'Lithium', 'In Bloom', 'Heart-Shaped Box']
-ids = ['hTWKbfoikeg', 'vabnZ9-ex7o', 'pkcJEvMcnEg', 'PbgKEjNBHqM', 'n6P0SitRwy8']
-
 
 def combine(playlist: list, ids: list) -> dict:
     tracks = {}
@@ -27,10 +24,16 @@ def process(keyphrase: str, data: dict) -> dict:
     except Exception as e:
         logging.debug(e)
         name = keyphrase.lower()
-    if name not in data or data[name]['date'] == 0:  # add delta
+    if name not in data or data[name]['date'] == 1:  # add delta:
         playlist, ids = fetching.create_top(keyphrase, number=10, ids_only=False)
         tracks = combine(playlist, ids)
-        data.setdefault(name, {'tracks': tracks, 'date': 1})
-        with open('database.json', 'w') as db:
-            json.dump(data, db)
+        if data[name]['date'] == 1:  # add delta:
+            data[name]['tracks'] = tracks
+            data[name]['date'] = 0
+        else:
+            # data.setdefault(name, {'tracks': tracks, 'date': 1})
+            entry = {name: {'tracks': tracks, 'date': 1}}
+            with open('database.json', 'a') as db:
+                # json.dump(data, db)
+                json.dump(entry, db)
     return data[name]['tracks']
