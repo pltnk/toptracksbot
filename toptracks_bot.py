@@ -2,8 +2,8 @@ import fetching
 import logging
 import os
 import re
+import storing
 
-from storing import Database
 from telegram import ChatAction
 from telegram.ext import CommandHandler
 from telegram.ext import MessageHandler, Filters
@@ -13,7 +13,6 @@ from telegram.ext import Updater
 # from telegram.ext import InlineQueryHandler
 
 TOKEN = os.getenv('BOT_TOKEN')
-DB = Database('database.json')
 # proxy settings
 # REQUEST_KWARGS = {
 #     'proxy_url': 'socks5://orbtl.s5.opennetwork.cc:999',
@@ -58,7 +57,7 @@ def send_top(update, context):
     else:
         context.bot.send_chat_action(chat_id=update.message.chat_id, action=ChatAction.TYPING)
         try:
-            top = DB.process(keyphrase)
+            top = storing.process(keyphrase)
             keys = list(top.keys())
             for i in range(0, number):
                 context.bot.send_message(chat_id=update.message.chat_id, text=f'{top[keys[i]]}')
