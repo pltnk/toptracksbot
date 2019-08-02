@@ -4,13 +4,12 @@ import logging
 import os
 import re
 import requests
-from typing import Union
 
 lastfm_api = os.getenv('LASTFM_API')
 youtube_api = os.getenv('YOUTUBE_API')
 
 
-def create_top(keyphrase: str, number: int = 5, ids_only: bool = True) -> Union[list, tuple]:
+def create_top(keyphrase: str, number: int = 3) -> list:
     try:
         playlist = get_playlist_api(keyphrase, number)
     except Exception as e:
@@ -23,10 +22,7 @@ def create_top(keyphrase: str, number: int = 5, ids_only: bool = True) -> Union[
         logging.warning(e)
         logging.info('Fetching YouTube ids without API')
         ids = fetch_ids(playlist)
-    if ids_only:
-        return ids
-    else:
-        return playlist, ids
+    return ids
 
 
 def get_playlist_api(keyphrase: str, number: int) -> list:
