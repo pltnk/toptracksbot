@@ -3,50 +3,53 @@ from datetime import datetime
 import logging
 import re
 import json
+import sqlite3
 
 
-class Database:
-    def __init__(self, file):
-        self.file = file
-        with open(file, 'r') as db:
-            self.data = json.load(db)
+logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+                    level=logging.INFO)
 
-    def rewrite(self):
-        with open(self.file, 'w') as db:
-            json.dump(self.data, db)
 
-    def add(self, entry):
-        with open(self.file, 'a') as db:
-            json.dump(entry, db)
+con = sqlite3.connect('database.db')
 
-    def reload(self):
-        self.__init__(self.file)
 
-    @staticmethod
-    def combine(keyphrase) -> dict:
-        tracks = {}
-        playlist, ids = fetching.create_top(keyphrase, number=10, ids_only=False)
-        regex = re.compile(r'^(.*\s-\s)(.*)')
-        playlist = [regex.match(item).group(2).lower() for item in playlist]
-        links = [f'youtube.com/watch?v={item}' for item in ids]
-        for track, link in zip(playlist, links):
-            tracks.setdefault(track, link)
-        return tracks
+def combine(keyphrase) -> dict:
+    tracks = {}
+    playlist, ids = fetching.create_top(keyphrase, number=10, ids_only=False)
+    regex = re.compile(r'^(.*\s-\s)(.*)')
+    playlist = [regex.match(item).group(2).lower() for item in playlist]
+    links = [f'youtube.com/watch?v={item}' for item in ids]
+    for track, link in zip(playlist, links):
+        tracks.setdefault(track, link)
+    tracks = json.dumps(tracks)
+    return tracks
 
-    def process(self, keyphrase: str) -> dict:
-        try:
-            name = fetching.get_info(keyphrase, name_only=True).lower()
-        except Exception as e:
-            logging.debug(e)
-            name = keyphrase.lower()
-        if name not in self.data:
-            entry = {name: {'tracks': self.combine(name), 'date': datetime.strftime(datetime.now(), '%Y-%m-%d')}}
-            self.add(entry)
-        else:
-            last_updated = datetime.strptime(self.data[name]['date'], '%Y-%m-%d')
-            delta = datetime.now() - last_updated
-            if delta.days > 30:
-                self.data[name]['tracks'] = self.combine(name)
-                self.data[name]['date'] = datetime.strftime(datetime.now(), '%Y-%m-%d')
-                self.rewrite()
-        return self.data[name]['tracks']
+
+# noinspection SqlResolve
+def process(keyphrase: str, con):
+    try:
+        name = fetching.get_info(keyphrase, name_only=True).lower()
+    except Exception as e:
+        logging.debug(e)
+        name = keyphrase.lower()
+    cur = con.cursor()
+    cur.execute(f"SELECT EXISTS(SELECT * FROM top WHERE artist='{name}')")
+    exists = cur.fetchone()
+    if exists == (1,):
+        logging.info('exists is True')
+        cur.execute(f"SELECT date FROM top WHERE artist='{name}'")
+        date = cur.fetchone()[0]
+        last_updated = datetime.strptime(date, '%Y-%m-%d')
+        delta = datetime.now() - last_updated
+        if delta.days > 30:
+            cur.execute(f"UPDATE top SET tracks=? WHERE artist=?", (combine(name), name))
+            cur.execute(f"UPDATE top SET date=? WHERE artist=?", (datetime.strftime(datetime.now(), '%Y-%m-%d'), name))
+            con.commit()
+    else:
+        logging.info('exists is False')
+        entry = str((name, combine(name), datetime.strftime(datetime.now(), '%Y-%m-%d')))
+        cur.execute(f"INSERT INTO top(artist, tracks, date) VALUES{entry}")
+        con.commit()
+    cur.execute(f"SELECT tracks FROM top WHERE artist='{name}'")
+    tracks = json.loads(cur.fetchone()[0])
+    return tracks
