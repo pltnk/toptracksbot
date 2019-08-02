@@ -27,18 +27,22 @@ def process(keyphrase: str, db: str = 'database.db') -> dict:
     cur.execute(f"SELECT EXISTS(SELECT * FROM top WHERE artist=?)", (name,))
     exists = cur.fetchone()
     if exists == (1,):
-        logging.info('exists is True')
+        logging.info(f'There is an artist with the name "{name}" in the database')
         cur.execute(f"SELECT date FROM top WHERE artist=?", (name,))
         date = cur.fetchone()[0]
         last_updated = datetime.strptime(date, '%Y-%m-%d')
         delta = datetime.now() - last_updated
         if delta.days > 30:
+            logging.info(f'Entry for "{name}" is older than 30 days. Updating...')
             cur.execute(f"UPDATE top SET tracks=? WHERE artist=?", (combine(name), name))
             cur.execute(f"UPDATE top SET date=? WHERE artist=?", (datetime.strftime(datetime.now(), '%Y-%m-%d'), name))
+            logging.info(f'Entry for "{name}" is updated')
     else:
-        logging.info('exists is False')
-        entry = (name, combine(name), datetime.strftime(datetime.now(), '%Y-%m-%d'))
-        cur.execute(f"INSERT INTO top(artist, tracks, date) VALUES(?, ?, ?)", entry)
+        logging.info(f'There is no artist named "{name}" in the database')
+        entry = (name, combine(name), datetime.strftime(datetime.now(), '%Y-%m-%d'), 0)
+        cur.execute(f"INSERT INTO top(artist, tracks, date, requests) VALUES(?, ?, ?, ?)", entry)
+        logging.info(f'Entry for "{name}" created in the database')
+    cur.execute(f"UPDATE top SET requests=requests+1 WHERE artist=?", (name,))
     con.commit()
     cur.execute(f"SELECT tracks FROM top WHERE artist=?", (name,))
     tracks = json.loads(cur.fetchone()[0])
