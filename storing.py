@@ -1,7 +1,6 @@
 import fetching
 from datetime import datetime
 import logging
-import re
 import json
 import sqlite3
 
@@ -10,16 +9,10 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
                     level=logging.INFO)
 
 
-def combine(keyphrase) -> dict:
-    tracks = {}
-    playlist, ids = fetching.create_top(keyphrase, number=10, ids_only=False)
-    regex = re.compile(r'^(.*\s-\s)(.*)')
-    playlist = [regex.match(item).group(2).lower() for item in playlist]
-    links = [f'youtube.com/watch?v={item}' for item in ids]
-    for track, link in zip(playlist, links):
-        tracks.setdefault(track, link)
-    tracks = json.dumps(tracks)
-    return tracks
+def combine(keyphrase: str) -> str:
+    ids = fetching.create_top(keyphrase, number=10)
+    links = json.dumps([f'youtube.com/watch?v={item}' for item in ids])
+    return links
 
 
 # noinspection SqlResolve
