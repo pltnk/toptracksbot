@@ -58,9 +58,8 @@ def send_top(update, context):
         context.bot.send_chat_action(chat_id=update.message.chat_id, action=ChatAction.TYPING)
         try:
             top = storing.process(keyphrase)
-            keys = list(top.keys())
             for i in range(0, number):
-                context.bot.send_message(chat_id=update.message.chat_id, text=f'{top[keys[i]]}')
+                context.bot.send_message(chat_id=update.message.chat_id, text=f'{top[i]}')
         except Exception as e:
             logging.info(e)
             try:
