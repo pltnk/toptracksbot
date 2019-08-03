@@ -13,6 +13,10 @@ from telegram.ext import Updater
 # from telegram.ext import InlineQueryHandler
 
 TOKEN = os.getenv('BOT_TOKEN')
+MODE = os.getenv('BOT_MODE')
+PORT = int(os.environ.get('PORT', '8443'))
+HEROKU_APP = os.getenv('HEROKU_APP')
+
 # proxy settings
 # REQUEST_KWARGS = {
 #     'proxy_url': 'socks5://orbtl.s5.opennetwork.cc:999',
@@ -22,16 +26,12 @@ TOKEN = os.getenv('BOT_TOKEN')
 #         'password': 'cTv8N72n',
 #     }
 # }
-REQUEST_KWARGS = {'proxy_url': 'socks5://178.197.248.213:1080'}
-
-MODE = os.getenv('BOT_MODE')
-PORT = int(os.environ.get('PORT', '8443'))
-HEROKU_APP = os.getenv('HEROKU_APP')
+# REQUEST_KWARGS = {'proxy_url': 'socks5://178.197.248.213:1080'}
 
 # updater that uses proxy
-updater = Updater(token=TOKEN, use_context=True, request_kwargs=REQUEST_KWARGS)
+# updater = Updater(token=TOKEN, use_context=True, request_kwargs=REQUEST_KWARGS)
 
-# updater = Updater(token=TOKEN, use_context=True)
+updater = Updater(token=TOKEN, use_context=True)
 dispatcher = updater.dispatcher
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                     level=logging.INFO)
@@ -104,7 +104,7 @@ start_handler = CommandHandler('start', start)
 default_handler = MessageHandler(Filters.text, send_top)
 top_handler = CommandHandler(['three', 'five', 'ten'], send_top)
 info_handler = CommandHandler('info', send_info)
-# inline_caps_handler = InlineQueryHandler(inline_caps)
+# inline_handler = InlineQueryHandler(inline_top)
 help_handler = CommandHandler('help', send_help)
 unknown_handler = MessageHandler(Filters.command, unknown)
 
@@ -112,7 +112,7 @@ dispatcher.add_handler(start_handler)
 dispatcher.add_handler(default_handler)
 dispatcher.add_handler(top_handler)
 dispatcher.add_handler(info_handler)
-# dispatcher.add_handler(inline_caps_handler)
+# dispatcher.add_handler(inline_handler)
 dispatcher.add_handler(help_handler)
 dispatcher.add_handler(unknown_handler)
 
@@ -125,7 +125,7 @@ def main():
                                   url_path=TOKEN)
             updater.bot.set_webhook(f"https://{HEROKU_APP}.herokuapp.com/{TOKEN}")
         else:
-            logging.info('Starting bot...')
+            logging.info('Starting bot')
             updater.start_polling()
             updater.idle()
     except Exception as e:
@@ -134,5 +134,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
-
