@@ -1,8 +1,9 @@
 import fetching
-from datetime import datetime
-import logging
 import json
+import logging
 import sqlite3
+
+from datetime import datetime
 
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -16,7 +17,7 @@ def combine(keyphrase: str) -> str:
 
 
 # noinspection SqlResolve
-def process(keyphrase: str, db: str = 'database.db') -> dict:
+def process(keyphrase: str, db: str = 'database.db') -> list:
     try:
         name = fetching.get_info(keyphrase, name_only=True).lower()
     except Exception as e:
