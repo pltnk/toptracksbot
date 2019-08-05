@@ -14,9 +14,8 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
 
 
 def combine(keyphrase: str) -> str:
-    ids = fetching.create_top(keyphrase, number=10)
-    links = json.dumps([f'youtube.com/watch?v={item}' for item in ids])
-    return links
+    ids = json.dumps(fetching.create_top(keyphrase))
+    return ids
 
 
 # noinspection SqlResolve
