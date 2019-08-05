@@ -1,7 +1,6 @@
 import fetching
 import logging
 import os
-import re
 import storing
 
 from telegram import ChatAction
@@ -26,7 +25,7 @@ HEROKU_APP = os.getenv('HEROKU_APP')
 #         'password': 'cTv8N72n',
 #     }
 # }
-# REQUEST_KWARGS = {'proxy_url': 'socks5://178.197.248.213:1080'}
+# REQUEST_KWARGS = {'proxy_url': 'socks5://94.130.73.31:8118'}
 
 # updater that uses proxy
 # updater = Updater(token=TOKEN, use_context=True, request_kwargs=REQUEST_KWARGS)
@@ -44,34 +43,18 @@ def start(update, context):
 
 def send_top(update, context):
     logging.info(f'(send_top) Incoming message: args={context.args}, text="{update.message.text}"')
-    if update.message.text.startswith('/five '):
-        number = 5
-    elif update.message.text.startswith('/ten '):
-        number = 10
-    else:
-        number = 3
-    keyphrase = ' '.join(context.args) if context.args else update.message.text
-    if re.compile(r'^/(three|five|ten)\s*$').search(keyphrase):
+    keyphrase = update.message.text
+    context.bot.send_chat_action(chat_id=update.message.chat_id, action=ChatAction.TYPING)
+    try:
+        top = storing.process(keyphrase)
+        for youtube_id in top:
+            context.bot.send_message(chat_id=update.message.chat_id, text=f'youtube.com/watch?v={youtube_id}')
+    except Exception as e:
+        logging.error(e)
         context.bot.send_message(chat_id=update.message.chat_id,
-                                 text=f'Command must be followed by artist name.\nExample: {keyphrase.strip()} Nirvana')
-    else:
-        context.bot.send_chat_action(chat_id=update.message.chat_id, action=ChatAction.TYPING)
-        try:
-            top = storing.process(keyphrase)
-            for i in range(0, number):
-                context.bot.send_message(chat_id=update.message.chat_id, text=f'{top[i]}')
-        except Exception as e:
-            logging.info(e)
-            try:
-                top = fetching.create_top(keyphrase, number)
-                for track in top:
-                    context.bot.send_message(chat_id=update.message.chat_id, text=f'youtube.com/watch?v={track}')
-            except Exception as e:
-                logging.error(e)
-                context.bot.send_message(chat_id=update.message.chat_id,
-                                         text=f'An error occurred, try /help.'
-                                              f'\nMost likely it was impossible to find this artist on last.fm, '
-                                              f'make sure this name is correct.')
+                                 text=f'An error occurred, try /help.'
+                                      f'\nMost likely it was impossible to find this artist on last.fm, '
+                                      f'make sure this name is correct.')
 
 
 def send_info(update, context):
@@ -88,10 +71,8 @@ def send_info(update, context):
 
 def send_help(update, context):
     logging.info(f'(send_help) Incoming message: args={context.args}, text="{update.message.text}"')
-    message = 'Enter an artist or a band name to get their top tracks of all time ' \
-              'according to last.fm charts.\nBy default this bot sends top three tracks.' \
-              '\n/five <artist> - get top five\n/ten <artist> - get top ten' \
-              '\n/info <artist> - get short bio of an artist\n/help - show this message.'
+    message = 'Enter an artist or a band name to get their top three tracks of all time ' \
+              'according to last.fm charts.\n/info <artist> - get short bio of an artist\n/help - show this message.'
     context.bot.send_message(chat_id=update.message.chat_id, text=message)
 
 
@@ -102,7 +83,6 @@ def unknown(update, context):
 
 start_handler = CommandHandler('start', start)
 default_handler = MessageHandler(Filters.text, send_top)
-top_handler = CommandHandler(['three', 'five', 'ten'], send_top)
 info_handler = CommandHandler('info', send_info)
 # inline_handler = InlineQueryHandler(inline_top)
 help_handler = CommandHandler('help', send_help)
@@ -110,7 +90,6 @@ unknown_handler = MessageHandler(Filters.command, unknown)
 
 dispatcher.add_handler(start_handler)
 dispatcher.add_handler(default_handler)
-dispatcher.add_handler(top_handler)
 dispatcher.add_handler(info_handler)
 # dispatcher.add_handler(inline_handler)
 dispatcher.add_handler(help_handler)
