@@ -25,7 +25,7 @@ def create_top(keyphrase: str, number: int = 3) -> list:
     return ids
 
 
-def get_playlist_api(keyphrase: str, number: int) -> list:
+def get_playlist_api(keyphrase: str, number: int = 3) -> list:
     res = requests.get(f'http://ws.audioscrobbler.com/2.0/?method=artist.gettoptracks&artist={keyphrase}&limit=10&autocorrect[1]&api_key={lastfm_api}')
     res.raise_for_status()
     soup = bs4.BeautifulSoup(res.content, 'lxml')
@@ -35,7 +35,7 @@ def get_playlist_api(keyphrase: str, number: int) -> list:
     return playlist
 
 
-def get_playlist(keyphrase: str, number: int) -> list:
+def get_playlist(keyphrase: str, number: int = 3) -> list:
     res = requests.get(f'https://www.last.fm/ru/music/{keyphrase}/+tracks?date_preset=ALL')
     res.raise_for_status()
     soup = bs4.BeautifulSoup(res.content, 'lxml')
