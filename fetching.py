@@ -11,6 +11,12 @@ youtube_api = os.getenv('YOUTUBE_API')
 
 
 def create_top(keyphrase: str, number: int = 3) -> list:
+    """
+    Create list of str containing YouTube IDs of the top tracks by the given artist according to Last.fm.
+    :param keyphrase: Name of an artist or a band.
+    :param number: Number of top tracks to collect.
+    :return: list of str. List of YouTube IDs.
+    """
     try:
         playlist = get_playlist_api(keyphrase, number)
     except Exception as e:
@@ -27,6 +33,12 @@ def create_top(keyphrase: str, number: int = 3) -> list:
 
 
 def get_playlist_api(keyphrase: str, number: int = 3) -> list:
+    """
+    Create a list of top tracks by given artist using Last.fm API.
+    :param keyphrase: Name of an artist or a band.
+    :param number: Number of top tracks to collect.
+    :return: list of str. List of top tracks formatted as '<artist> - <track>'.
+    """
     res = requests.get(f'http://ws.audioscrobbler.com/2.0/?method=artist.gettoptracks&artist={keyphrase}&limit={number}&autocorrect[1]&api_key={lastfm_api}')
     res.raise_for_status()
     soup = bs4.BeautifulSoup(res.content, 'lxml')
@@ -37,6 +49,12 @@ def get_playlist_api(keyphrase: str, number: int = 3) -> list:
 
 
 def get_playlist(keyphrase: str, number: int = 3) -> list:
+    """
+    Create a list of top tracks by given artist **without** using Last.fm API.
+    :param keyphrase: Name of an artist or a band.
+    :param number: Number of top tracks to collect.
+    :return: list of str. List of top tracks formatted as '<artist> - <track>'.
+    """
     res = requests.get(f'https://www.last.fm/music/{keyphrase}/+tracks?date_preset=ALL')
     res.raise_for_status()
     soup = bs4.BeautifulSoup(res.content, 'lxml')
@@ -47,6 +65,11 @@ def get_playlist(keyphrase: str, number: int = 3) -> list:
 
 
 def fetch_ids_api(playlist: list) -> list:
+    """
+    Create a list containing an YouTube ID for each track in the given playlist using YouTube API.
+    :param playlist: list of str. List of tracks formatted as '<artist> - <track>'.
+    :return: list of str. List of YouTube IDs.
+    """
     ids = []
     for track in playlist:
         page = requests.get(f'https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=1&q={track}&key={youtube_api}')
@@ -60,6 +83,11 @@ def fetch_ids_api(playlist: list) -> list:
 
 
 def fetch_ids(playlist: list) -> list:
+    """
+     Create a list containing an YouTube ID for each track in the given playlist **without** using YouTube API.
+     :param playlist: list of str. List of tracks formatted as '<artist> - <track>'.
+     :return: list of str. List of YouTube IDs.
+     """
     ids = []
     for track in playlist:
         page = requests.get(f'https://www.youtube.com/results?search_query={track}')
@@ -73,6 +101,12 @@ def fetch_ids(playlist: list) -> list:
 
 
 def get_info_api(keyphrase: str, name_only: bool = False) -> str:
+    """
+    Collect a correct name and short bio of the given artist using Last.fm API.
+    :param keyphrase: Name of an artist or a band.
+    :param name_only: Switch between returns.
+    :return: Either just a name of an artist or their short bio.
+    """
     res = requests.get(f'http://ws.audioscrobbler.com/2.0/?method=artist.getinfo&artist={keyphrase}&autocorrect[1]&api_key={lastfm_api}&format=json')
     res.raise_for_status()
     soup = bs4.BeautifulSoup(res.content, 'lxml')
@@ -89,6 +123,12 @@ def get_info_api(keyphrase: str, name_only: bool = False) -> str:
 
 
 def get_info(keyphrase: str, name_only: bool = False) -> str:
+    """
+    Collect a correct name and short bio of the given artist **without** using Last.fm API.
+    :param keyphrase: Name of an artist or a band.
+    :param name_only: Switch between returns.
+    :return: Either just a name of an artist or their short bio.
+    """
     res = requests.get(f'https://www.last.fm/music/{keyphrase}/+wiki')
     res.raise_for_status()
     soup = bs4.BeautifulSoup(res.content, 'lxml')
