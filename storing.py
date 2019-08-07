@@ -21,10 +21,10 @@ def combine(keyphrase: str) -> str:
 # noinspection SqlResolve
 def process(keyphrase: str) -> list:
     try:
-        name = fetching.get_info(keyphrase, name_only=True).lower()
+        name = fetching.get_info_api(keyphrase, name_only=True).lower()
     except Exception as e:
-        logging.debug(e)
-        name = keyphrase.lower()
+        logging.debug(f'An error occurred while fetching artist name via last.fm API: {e}. Proceeding without API.')
+        name = fetching.get_info(keyphrase, name_only=True).lower()
     con = psycopg2.connect(DATABASE_URL, sslmode='require')
     cur = con.cursor()
     cur.execute(f'SELECT EXISTS(SELECT * FROM top WHERE artist = %s)', (name,))
