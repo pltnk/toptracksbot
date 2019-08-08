@@ -116,6 +116,20 @@ def get_name(keyphrase: str) -> str:
     return name
 
 
+def get_info(keyphrase: str) -> str:
+    """
+    Get information about the given artist from Last.fm.
+    :param keyphrase: Name of an artist or a band.
+    :return: Information about the artist.
+    """
+    try:
+        info = get_bio_api(keyphrase)
+    except Exception as e:
+        logging.debug(f'An error occurred while fetching artist bio via Last.fm API: {e}. Proceeding without API.')
+        info = get_bio(keyphrase)
+    return info
+
+
 def get_bio_api(keyphrase: str, name_only: bool = False) -> str:
     """
     Collect a correct name and short bio of the given artist using Last.fm API.
