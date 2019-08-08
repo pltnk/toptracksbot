@@ -100,6 +100,22 @@ def fetch_ids(playlist: list) -> list:
     return ids
 
 
+def get_name(keyphrase: str) -> str:
+    """
+    Get corrected artist name from Last.fm.
+    :param keyphrase: Name of an artist or a band.
+    :return: Corrected artist name.
+    >>> get_name('norvana')
+    'Nirvana'
+    """
+    try:
+        name = get_info_api(keyphrase, name_only=True)
+    except Exception as e:
+        logging.debug(f'An error occurred while fetching artist name via Last.fm API: {e}. Proceeding without API.')
+        name = get_info(keyphrase, name_only=True)
+    return name
+
+
 def get_info_api(keyphrase: str, name_only: bool = False) -> str:
     """
     Collect a correct name and short bio of the given artist using Last.fm API.
