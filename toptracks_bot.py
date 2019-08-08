@@ -18,7 +18,7 @@ PORT = int(os.environ.get('PORT', '8443'))
 HEROKU_APP = os.getenv('HEROKU_APP')
 
 # proxy settings
-# REQUEST_KWARGS = {'proxy_url': 'socks5://94.130.73.31:8118'}
+# REQUEST_KWARGS = {'proxy_url': 'socks5://95.216.198.56:16482'}
 
 # updater that uses proxy
 # updater = Updater(token=TOKEN, use_context=True, request_kwargs=REQUEST_KWARGS)
