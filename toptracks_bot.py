@@ -7,6 +7,7 @@ from telegram import ChatAction
 from telegram.ext import CommandHandler
 from telegram.ext import MessageHandler, Filters
 from telegram.ext import Updater
+from requests.exceptions import HTTPError
 
 # from telegram import InlineQueryResultArticle, InputTextMessageContent
 # from telegram.ext import InlineQueryHandler
@@ -17,14 +18,6 @@ PORT = int(os.environ.get('PORT', '8443'))
 HEROKU_APP = os.getenv('HEROKU_APP')
 
 # proxy settings
-# REQUEST_KWARGS = {
-#     'proxy_url': 'socks5://orbtl.s5.opennetwork.cc:999',
-#     # Optional, if you need authentication:
-#     'urllib3_proxy_kwargs': {
-#         'username': '147578754',
-#         'password': 'cTv8N72n',
-#     }
-# }
 # REQUEST_KWARGS = {'proxy_url': 'socks5://94.130.73.31:8118'}
 
 # updater that uses proxy
@@ -49,12 +42,11 @@ def send_top(update, context):
         top = storing.process(keyphrase)
         for youtube_id in top:
             context.bot.send_message(chat_id=update.message.chat_id, text=f'youtube.com/watch?v={youtube_id}')
-    except Exception as e:
+    except HTTPError as e:
         logging.error(e)
         context.bot.send_message(chat_id=update.message.chat_id,
-                                 text=f'An error occurred, try /help.'
-                                      f'\nMost likely it was impossible to find this artist on last.fm, '
-                                      f'make sure this name is correct.')
+                                 text=f'An error occurred, most likely I couldn\'t find this artist on Last.fm.'
+                                      f'\nMake sure this name is correct.')
 
 
 def send_info(update, context):
