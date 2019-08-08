@@ -20,7 +20,7 @@ def create_top(keyphrase: str, number: int = 3) -> list:
     try:
         playlist = get_playlist_api(keyphrase, number)
     except Exception as e:
-        logging.warning(f'An error occurred while creating playlist via last.fm api: {e}')
+        logging.warning(f'An error occurred while creating playlist via Last.fm API: {e}')
         logging.info('Creating playlist without API')
         playlist = get_playlist(keyphrase, number)
     try:
@@ -115,10 +115,12 @@ def get_info_api(keyphrase: str, name_only: bool = False) -> str:
     if name_only:
         return name
     else:
-        logging.info(f'Collecting short bio for {name}')
-        summary = soup_dict['artist']['bio']['summary']
+        logging.info(f'Collecting short bio for {name} using Last.fm API.')
+        summary = soup_dict['artist']['bio']['summary'][:-21]
+        tags = soup_dict['artist']['tags']['tag']
+        tags = ', '.join([tags[i]['name'] for i in range(len(tags))])
         link = soup_dict['artist']['url']
-        info = f'{summary}: {link}'
+        info = f'{summary}\nTags: {tags}\nRead more: {link}'
         return info
 
 
@@ -136,7 +138,8 @@ def get_info(keyphrase: str, name_only: bool = False) -> str:
     if name_only:
         return name
     else:
-        summary = soup.find('div', attrs={'class': 'wiki-content'}).text.strip()
+        logging.info(f'Collecting short bio for {name} without Last.fm API.')
+        summary = soup.find('div', attrs={'class': 'wiki-content'}).text.strip()[:600]
         link = f'https://www.last.fm/music/{name}'
-        info = f'{summary}\nRead more: {link}'
+        info = f'{summary}...\nRead more: {link}'
         return info
