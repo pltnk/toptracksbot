@@ -159,3 +159,11 @@ def get_bio(keyphrase: str, name_only: bool = False) -> str:
         link = f'https://www.last.fm/music/{name}'
         info = f'{summary}...\nRead more: {link}'
         return info
+
+
+def correct_name_api(keyphrase: str) -> str:
+    res = requests.get(f'http://ws.audioscrobbler.com/2.0/?method=artist.getcorrection&artist={keyphrase}&api_key={lastfm_api}')
+    res.raise_for_status()
+    soup = bs4.BeautifulSoup(res.content, 'lxml')
+    name = soup.find('name').text
+    return name
