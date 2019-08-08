@@ -3,3 +3,4 @@ beautifulsoup4
 requests
 PySocks
 lxml
+psycopg2-binary

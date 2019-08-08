@@ -1,13 +1,13 @@
 import fetching
 import logging
 import os
-import re
 import storing
 
 from telegram import ChatAction
 from telegram.ext import CommandHandler
 from telegram.ext import MessageHandler, Filters
 from telegram.ext import Updater
+from requests.exceptions import HTTPError
 
 # from telegram import InlineQueryResultArticle, InputTextMessageContent
 # from telegram.ext import InlineQueryHandler
@@ -18,15 +18,7 @@ PORT = int(os.environ.get('PORT', '8443'))
 HEROKU_APP = os.getenv('HEROKU_APP')
 
 # proxy settings
-# REQUEST_KWARGS = {
-#     'proxy_url': 'socks5://orbtl.s5.opennetwork.cc:999',
-#     # Optional, if you need authentication:
-#     'urllib3_proxy_kwargs': {
-#         'username': '147578754',
-#         'password': 'cTv8N72n',
-#     }
-# }
-# REQUEST_KWARGS = {'proxy_url': 'socks5://178.197.248.213:1080'}
+# REQUEST_KWARGS = {'proxy_url': 'socks5://95.216.198.56:16482'}
 
 # updater that uses proxy
 # updater = Updater(token=TOKEN, use_context=True, request_kwargs=REQUEST_KWARGS)
@@ -38,43 +30,29 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
 
 
 def start(update, context):
+    """Process /start command that sent to the bot."""
     logging.info(f'(start) Incoming message: args={context.args}, text="{update.message.text}"')
     context.bot.send_message(chat_id=update.message.chat_id, text="Enter an artist or a band name.")
 
 
 def send_top(update, context):
+    """Process incoming message, send top tracks by the given artist or send an error message."""
     logging.info(f'(send_top) Incoming message: args={context.args}, text="{update.message.text}"')
-    if update.message.text.startswith('/five '):
-        number = 5
-    elif update.message.text.startswith('/ten '):
-        number = 10
-    else:
-        number = 3
-    keyphrase = ' '.join(context.args) if context.args else update.message.text
-    if re.compile(r'^/(three|five|ten)\s*$').search(keyphrase):
+    keyphrase = update.message.text
+    context.bot.send_chat_action(chat_id=update.message.chat_id, action=ChatAction.TYPING)
+    try:
+        top = storing.process(keyphrase)
+        for youtube_id in top:
+            context.bot.send_message(chat_id=update.message.chat_id, text=f'youtube.com/watch?v={youtube_id}')
+    except HTTPError as e:
+        logging.error(e)
         context.bot.send_message(chat_id=update.message.chat_id,
-                                 text=f'Command must be followed by artist name.\nExample: {keyphrase.strip()} Nirvana')
-    else:
-        context.bot.send_chat_action(chat_id=update.message.chat_id, action=ChatAction.TYPING)
-        try:
-            top = storing.process(keyphrase)
-            for i in range(0, number):
-                context.bot.send_message(chat_id=update.message.chat_id, text=f'{top[i]}')
-        except Exception as e:
-            logging.info(e)
-            try:
-                top = fetching.create_top(keyphrase, number)
-                for track in top:
-                    context.bot.send_message(chat_id=update.message.chat_id, text=f'youtube.com/watch?v={track}')
-            except Exception as e:
-                logging.error(e)
-                context.bot.send_message(chat_id=update.message.chat_id,
-                                         text=f'An error occurred, try /help.'
-                                              f'\nMost likely it was impossible to find this artist on last.fm, '
-                                              f'make sure this name is correct.')
+                                 text=f'An error occurred, most likely I couldn\'t find this artist on Last.fm.'
+                                      f'\nMake sure this name is correct.')
 
 
 def send_info(update, context):
+    """Process /info command."""
     logging.info(f'(send_info) Incoming message: args={context.args}, text="{update.message.text}"')
     if len(context.args) == 0:
         context.bot.send_message(chat_id=update.message.chat_id,
@@ -87,22 +65,21 @@ def send_info(update, context):
 
 
 def send_help(update, context):
+    """Process /help command."""
     logging.info(f'(send_help) Incoming message: args={context.args}, text="{update.message.text}"')
-    message = 'Enter an artist or a band name to get their top tracks of all time ' \
-              'according to last.fm charts.\nBy default this bot sends top three tracks.' \
-              '\n/five <artist> - get top five\n/ten <artist> - get top ten' \
-              '\n/info <artist> - get short bio of an artist\n/help - show this message.'
+    message = 'Enter an artist or a band name to get their top three tracks of all time ' \
+              'according to last.fm charts.\n/info <artist> - get short bio of an artist\n/help - show this message.'
     context.bot.send_message(chat_id=update.message.chat_id, text=message)
 
 
 def unknown(update, context):
+    """Process any unknown command."""
     logging.info(f'(unknown) Incoming message: args={context.args}, text="{update.message.text}"')
     context.bot.send_message(chat_id=update.message.chat_id, text='Unknown command, try /help.')
 
 
 start_handler = CommandHandler('start', start)
 default_handler = MessageHandler(Filters.text, send_top)
-top_handler = CommandHandler(['three', 'five', 'ten'], send_top)
 info_handler = CommandHandler('info', send_info)
 # inline_handler = InlineQueryHandler(inline_top)
 help_handler = CommandHandler('help', send_help)
@@ -110,7 +87,6 @@ unknown_handler = MessageHandler(Filters.command, unknown)
 
 dispatcher.add_handler(start_handler)
 dispatcher.add_handler(default_handler)
-dispatcher.add_handler(top_handler)
 dispatcher.add_handler(info_handler)
 # dispatcher.add_handler(inline_handler)
 dispatcher.add_handler(help_handler)
