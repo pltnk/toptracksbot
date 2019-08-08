@@ -30,11 +30,13 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
 
 
 def start(update, context):
+    """Process /start command that sent to the bot."""
     logging.info(f'(start) Incoming message: args={context.args}, text="{update.message.text}"')
     context.bot.send_message(chat_id=update.message.chat_id, text="Enter an artist or a band name.")
 
 
 def send_top(update, context):
+    """Process incoming message, send top tracks by the given artist or send an error message."""
     logging.info(f'(send_top) Incoming message: args={context.args}, text="{update.message.text}"')
     keyphrase = update.message.text
     context.bot.send_chat_action(chat_id=update.message.chat_id, action=ChatAction.TYPING)
@@ -50,6 +52,7 @@ def send_top(update, context):
 
 
 def send_info(update, context):
+    """Process /info command."""
     logging.info(f'(send_info) Incoming message: args={context.args}, text="{update.message.text}"')
     if len(context.args) == 0:
         context.bot.send_message(chat_id=update.message.chat_id,
@@ -62,6 +65,7 @@ def send_info(update, context):
 
 
 def send_help(update, context):
+    """Process /help command."""
     logging.info(f'(send_help) Incoming message: args={context.args}, text="{update.message.text}"')
     message = 'Enter an artist or a band name to get their top three tracks of all time ' \
               'according to last.fm charts.\n/info <artist> - get short bio of an artist\n/help - show this message.'
@@ -69,6 +73,7 @@ def send_help(update, context):
 
 
 def unknown(update, context):
+    """Process any unknown command."""
     logging.info(f'(unknown) Incoming message: args={context.args}, text="{update.message.text}"')
     context.bot.send_message(chat_id=update.message.chat_id, text='Unknown command, try /help.')
 
