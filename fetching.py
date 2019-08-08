@@ -136,8 +136,8 @@ def get_bio_api(keyphrase: str, name_only: bool = False) -> str:
         tags = soup_dict['artist']['tags']['tag']
         tags = ', '.join([tags[i]['name'] for i in range(len(tags))])
         link = soup_dict['artist']['url']
-        info = f'{summary}\nTags: {tags}\nRead more: {link}'
-        return info
+        bio = f'{summary}\nTags: {tags}\nRead more: {link}'
+        return bio
 
 
 def get_bio(keyphrase: str, name_only: bool = False) -> str:
@@ -157,8 +157,8 @@ def get_bio(keyphrase: str, name_only: bool = False) -> str:
         logging.info(f'Collecting short bio for {name} without Last.fm API.')
         summary = soup.find('div', attrs={'class': 'wiki-content'}).text.strip()[:600]
         link = f'https://www.last.fm/music/{name}'
-        info = f'{summary}...\nRead more: {link}'
-        return info
+        bio = f'{summary}...\nRead more: {link}'
+        return bio
 
 
 def correct_name_api(keyphrase: str) -> str:
