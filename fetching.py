@@ -109,14 +109,28 @@ def get_name(keyphrase: str) -> str:
     'Nirvana'
     """
     try:
-        name = get_info_api(keyphrase, name_only=True)
+        name = get_bio_api(keyphrase, name_only=True)
     except Exception as e:
         logging.debug(f'An error occurred while fetching artist name via Last.fm API: {e}. Proceeding without API.')
-        name = get_info(keyphrase, name_only=True)
+        name = get_bio(keyphrase, name_only=True)
     return name
 
 
-def get_info_api(keyphrase: str, name_only: bool = False) -> str:
+def get_info(keyphrase: str) -> str:
+    """
+    Get information about the given artist from Last.fm.
+    :param keyphrase: Name of an artist or a band.
+    :return: Information about the artist.
+    """
+    try:
+        info = get_bio_api(keyphrase)
+    except Exception as e:
+        logging.debug(f'An error occurred while fetching artist bio via Last.fm API: {e}. Proceeding without API.')
+        info = get_bio(keyphrase)
+    return info
+
+
+def get_bio_api(keyphrase: str, name_only: bool = False) -> str:
     """
     Collect a correct name and short bio of the given artist using Last.fm API.
     :param keyphrase: Name of an artist or a band.
@@ -136,11 +150,11 @@ def get_info_api(keyphrase: str, name_only: bool = False) -> str:
         tags = soup_dict['artist']['tags']['tag']
         tags = ', '.join([tags[i]['name'] for i in range(len(tags))])
         link = soup_dict['artist']['url']
-        info = f'{summary}\nTags: {tags}\nRead more: {link}'
-        return info
+        bio = f'{summary}\nTags: {tags}\nRead more: {link}'
+        return bio
 
 
-def get_info(keyphrase: str, name_only: bool = False) -> str:
+def get_bio(keyphrase: str, name_only: bool = False) -> str:
     """
     Collect a correct name and short bio of the given artist **without** using Last.fm API.
     :param keyphrase: Name of an artist or a band.
@@ -157,5 +171,5 @@ def get_info(keyphrase: str, name_only: bool = False) -> str:
         logging.info(f'Collecting short bio for {name} without Last.fm API.')
         summary = soup.find('div', attrs={'class': 'wiki-content'}).text.strip()[:600]
         link = f'https://www.last.fm/music/{name}'
-        info = f'{summary}...\nRead more: {link}'
-        return info
+        bio = f'{summary}...\nRead more: {link}'
+        return bio
