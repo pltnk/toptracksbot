@@ -14,12 +14,23 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
 
 
 def combine(keyphrase: str) -> str:
+    """
+    Create JSON array containing YouTube IDs of the top tracks by the given artist according to Last.fm.
+    :param keyphrase: Name of an artist or a band.
+    :return: str containing JSON array.
+    """
     ids = json.dumps(fetching.create_top(keyphrase))
     return ids
 
 
 # noinspection SqlResolve
 def process(keyphrase: str) -> list:
+    """
+    Check if an entry for the given artist exists in the database, update it if it is outdated,
+    create a new entry if it doesn't exist.
+    :param keyphrase: Name of an artist or a band.
+    :return: List of YouTube IDs.
+    """
     try:
         name = fetching.get_name(keyphrase).lower()
     except Exception as e:
