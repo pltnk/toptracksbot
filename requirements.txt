@@ -1,5 +1,6 @@
-python-telegram-bot==12.0.0b1
 beautifulsoup4
-requests
-PySocks
 lxml
+psycopg2-binary
+PySocks
+python-telegram-bot==12.0.0b1
+requests
