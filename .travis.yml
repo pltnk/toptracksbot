@@ -1,3 +1,3 @@
 language: python
 python: 3.7
-script: toptracks_bot.py
+script: python3 toptracks_bot.py
