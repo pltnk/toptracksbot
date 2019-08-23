@@ -1,3 +1,11 @@
+"""
+This module is a part of Top Tracks Bot for Telegram
+and is licensed under the MIT License.
+Copyright (c) 2019 Kirill Plotnikov
+GitHub: https://github.com/pltnk/top_tracks
+"""
+
+
 import fetching
 import json
 import logging
