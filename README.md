@@ -10,7 +10,7 @@ This bot fetches video from YouTube for the top three tracks by specified artist
 The bot is deployed on Heroku and you can try it in Telegram: [@toptracks_bot](http://t.me/toptracks_bot)
 
 ## Built With
-* [python-telegram-bot](https://github.com/python-telegram-bot/python-telegram-bot) - This library provides a pure Python interface for the Telegram Bot API.
+* [python-telegram-bot](https://github.com/python-telegram-bot/python-telegram-bot) - this library provides a pure Python interface for the Telegram Bot API.
 
 ## License
 
