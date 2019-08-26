@@ -6,13 +6,14 @@ GitHub: https://github.com/pltnk/top_tracks
 """
 
 
-import fetching
 import json
 import logging
 import os
+from datetime import datetime
+
 import psycopg2
 
-from datetime import datetime
+import fetching
 
 
 DATABASE_URL = os.environ["DATABASE_URL"]
