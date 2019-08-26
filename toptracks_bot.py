@@ -6,19 +6,17 @@ GitHub: https://github.com/pltnk/top_tracks
 """
 
 
-import fetching
 import logging
 import os
-import storing
 
+from requests.exceptions import HTTPError
 from telegram import ChatAction
 from telegram.ext import CommandHandler
 from telegram.ext import MessageHandler, Filters
 from telegram.ext import Updater
-from requests.exceptions import HTTPError
 
-# from telegram import InlineQueryResultArticle, InputTextMessageContent
-# from telegram.ext import InlineQueryHandler
+import fetching
+import storing
 
 TOKEN = os.getenv("BOT_TOKEN")
 MODE = os.getenv("BOT_MODE")
@@ -26,7 +24,7 @@ PORT = int(os.environ.get("PORT", "8443"))
 HEROKU_APP = os.getenv("HEROKU_APP")
 
 # proxy settings
-# REQUEST_KWARGS = {'proxy_url': 'socks5://95.216.198.56:16482'}
+# REQUEST_KWARGS = {'proxy_url': 'socks5://185.158.249.201:315'}
 
 # updater that uses proxy
 # updater = Updater(token=TOKEN, use_context=True, request_kwargs=REQUEST_KWARGS)
@@ -116,14 +114,12 @@ def unknown(update, context):
 start_handler = CommandHandler("start", start)
 default_handler = MessageHandler(Filters.text, send_top)
 info_handler = CommandHandler("info", send_info)
-# inline_handler = InlineQueryHandler(inline_top)
 help_handler = CommandHandler("help", send_help)
 unknown_handler = MessageHandler(Filters.command, unknown)
 
 dispatcher.add_handler(start_handler)
 dispatcher.add_handler(default_handler)
 dispatcher.add_handler(info_handler)
-# dispatcher.add_handler(inline_handler)
 dispatcher.add_handler(help_handler)
 dispatcher.add_handler(unknown_handler)
 
