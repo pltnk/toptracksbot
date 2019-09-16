@@ -6,11 +6,12 @@ GitHub: https://github.com/pltnk/top_tracks
 """
 
 
-import bs4
 import json
 import logging
 import os
 import re
+
+import bs4
 import requests
 
 
