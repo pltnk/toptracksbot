@@ -6,29 +6,31 @@ GitHub: https://github.com/pltnk/toptracksbot
 """
 
 
+import asyncio
 import json
 import logging
 import os
 import re
 
 import bs4
-import requests
+import httpx
 
 
-lastfm_api = os.getenv("LASTFM_API")
-youtube_api = os.getenv("YOUTUBE_API")
+LASTFM_API = os.getenv("LASTFM_API")
+YOUTUBE_API = os.getenv("YOUTUBE_API")
 
 
-def get_playlist_api(keyphrase: str, number: int = 3) -> list:
+async def get_playlist_api(keyphrase: str, number: int = 3) -> list:
     """
     Create a list of top tracks by given artist using Last.fm API.
     :param keyphrase: Name of an artist or a band.
     :param number: Number of top tracks to collect.
     :return: list of str. List of top tracks formatted as '<artist> - <track>'.
     """
-    res = requests.get(
-        f"http://ws.audioscrobbler.com/2.0/?method=artist.gettoptracks&artist={keyphrase}&limit={number}&autocorrect[1]&api_key={lastfm_api}"
-    )
+    async with httpx.AsyncClient() as client:
+        res = await client.get(
+            f"http://ws.audioscrobbler.com/2.0/?method=artist.gettoptracks&artist={keyphrase}&limit={number}&autocorrect[1]&api_key={LASTFM_API}"
+        )
     res.raise_for_status()
     soup = bs4.BeautifulSoup(res.content, "lxml")
     artist = soup.find("toptracks").get("artist")
@@ -40,14 +42,17 @@ def get_playlist_api(keyphrase: str, number: int = 3) -> list:
     return playlist
 
 
-def get_playlist(keyphrase: str, number: int = 3) -> list:
+async def get_playlist(keyphrase: str, number: int = 3) -> list:
     """
     Create a list of top tracks by given artist **without** using Last.fm API.
     :param keyphrase: Name of an artist or a band.
     :param number: Number of top tracks to collect.
     :return: list of str. List of top tracks formatted as '<artist> - <track>'.
     """
-    res = requests.get(f"https://www.last.fm/music/{keyphrase}/+tracks?date_preset=ALL")
+    async with httpx.AsyncClient() as client:
+        res = await client.get(
+            f"https://www.last.fm/music/{keyphrase}/+tracks?date_preset=ALL"
+        )
     res.raise_for_status()
     soup = bs4.BeautifulSoup(res.content, "lxml")
     artist = soup.find("h1", attrs={"class": "header-new-title"}).text.strip()
@@ -58,45 +63,57 @@ def get_playlist(keyphrase: str, number: int = 3) -> list:
     return playlist
 
 
-def fetch_ids_api(playlist: list) -> list:
+async def fetch_ids_api(playlist: list) -> list:
     """
     Create a list containing an YouTube ID for each track in the given playlist using YouTube API.
     :param playlist: list of str. List of tracks formatted as '<artist> - <track>'.
     :return: list of str. List of YouTube IDs.
     """
     ids = []
-    for track in playlist:
-        page = requests.get(
-            f"https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=1&q={track}&key={youtube_api}"
-        )
-        page.raise_for_status()
-        parsed_page = bs4.BeautifulSoup(page.content, "lxml")
-        video_id = json.loads(parsed_page.text)["items"][0]["id"]["videoId"]
-        if video_id is not None:
-            logging.info(f"Adding YouTube id for: {track}")
-            ids.append(video_id)
+    async with httpx.AsyncClient() as client:
+        tasks = []
+        for track in playlist:
+            tasks.append(
+                client.get(
+                    f"https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=1&q={track}&key={YOUTUBE_API}"
+                )
+            )
+        result = await asyncio.gather(*tasks)
+    for counter, res in enumerate(result):
+        if res.status_code == 200:
+            parsed = json.loads(res.text)
+            video_id = parsed["items"][0]["id"]["videoId"]
+            if video_id:
+                logging.info(f"Adding YouTube id for: {playlist[counter]}")
+                ids.append(video_id)
     return ids
 
 
-def fetch_ids(playlist: list) -> list:
+async def fetch_ids(playlist: list) -> list:
     """
      Create a list containing an YouTube ID for each track in the given playlist **without** using YouTube API.
      :param playlist: list of str. List of tracks formatted as '<artist> - <track>'.
      :return: list of str. List of YouTube IDs.
      """
     ids = []
-    for track in playlist:
-        page = requests.get(f"https://www.youtube.com/results?search_query={track}")
-        page.raise_for_status()
-        parsed_page = bs4.BeautifulSoup(page.content, "html.parser")
-        link = parsed_page.find("a", attrs={"dir": "ltr", "title": re.compile(r".*?")})
-        if link is not None:
-            logging.info(f"Adding YouTube id for: {track}")
-            ids.append(link["href"][9:])
+    async with httpx.AsyncClient() as client:
+        tasks = []
+        for track in playlist:
+            tasks.append(
+                client.get(f"https://www.youtube.com/results?search_query={track}")
+            )
+        result = await asyncio.gather(*tasks)
+    for counter, res in enumerate(result):
+        if res.status_code == 200:
+            parsed = bs4.BeautifulSoup(res.content, "lxml")
+            link = parsed.find("a", attrs={"dir": "ltr", "title": re.compile(r".*?")})
+            if link:
+                logging.info(f"Adding YouTube id for: {playlist[counter]}")
+                ids.append(link["href"][9:])
     return ids
 
 
-def create_top(keyphrase: str, number: int = 3) -> list:
+async def create_top(keyphrase: str, number: int = 3) -> list:
     """
     Create list of str containing YouTube IDs of the top tracks by the given artist according to Last.fm.
     :param keyphrase: Name of an artist or a band.
@@ -104,56 +121,57 @@ def create_top(keyphrase: str, number: int = 3) -> list:
     :return: list of str. List of YouTube IDs.
     """
     try:
-        playlist = get_playlist_api(keyphrase, number)
+        playlist = await get_playlist_api(keyphrase, number)
     except Exception as e:
         logging.warning(
             f"An error occurred while creating playlist via Last.fm API: {e}"
         )
         logging.info("Creating playlist without API")
-        playlist = get_playlist(keyphrase, number)
+        playlist = await get_playlist(keyphrase, number)
     try:
-        ids = fetch_ids_api(playlist)
+        ids = await fetch_ids_api(playlist)
     except Exception as e:
         logging.warning(f"An error occurred while fetching YouTube ids via API: {e}")
         logging.info("Fetching YouTube ids without API")
-        ids = fetch_ids(playlist)
+        ids = await fetch_ids(playlist)
     return ids
 
 
-def get_bio_api(keyphrase: str, name_only: bool = False) -> str:
+async def get_bio_api(keyphrase: str, name_only: bool = False) -> str:
     """
     Collect a correct name and short bio of the given artist using Last.fm API.
     :param keyphrase: Name of an artist or a band.
     :param name_only: Switch between returns.
     :return: Either just a name of an artist or their short bio.
     """
-    res = requests.get(
-        f"http://ws.audioscrobbler.com/2.0/?method=artist.getinfo&artist={keyphrase}&autocorrect[1]&api_key={lastfm_api}&format=json"
-    )
+    async with httpx.AsyncClient() as client:
+        res = await client.get(
+            f"http://ws.audioscrobbler.com/2.0/?method=artist.getinfo&artist={keyphrase}&autocorrect[1]&api_key={LASTFM_API}&format=json"
+        )
     res.raise_for_status()
-    soup = bs4.BeautifulSoup(res.content, "lxml")
-    soup_dict = json.loads(soup.text)
-    name = soup_dict["artist"]["name"]
+    parsed = json.loads(res.text)
+    name = parsed["artist"]["name"]
     if name_only:
         return name
     else:
         logging.info(f"Collecting short bio for {name} using Last.fm API.")
-        summary = soup_dict["artist"]["bio"]["summary"][:-21]
-        tags = soup_dict["artist"]["tags"]["tag"]
+        summary = parsed["artist"]["bio"]["summary"][:-21]
+        tags = parsed["artist"]["tags"]["tag"]
         tags = ", ".join([tags[i]["name"] for i in range(len(tags))])
-        link = soup_dict["artist"]["url"]
+        link = parsed["artist"]["url"]
         bio = f"{summary}\nTags: {tags}\nRead more: {link}"
         return bio
 
 
-def get_bio(keyphrase: str, name_only: bool = False) -> str:
+async def get_bio(keyphrase: str, name_only: bool = False) -> str:
     """
     Collect a correct name and short bio of the given artist **without** using Last.fm API.
     :param keyphrase: Name of an artist or a band.
     :param name_only: Switch between returns.
     :return: Either just a name of an artist or their short bio.
     """
-    res = requests.get(f"https://www.last.fm/music/{keyphrase}/+wiki")
+    async with httpx.AsyncClient() as client:
+        res = await client.get(f"https://www.last.fm/music/{keyphrase}/+wiki")
     res.raise_for_status()
     soup = bs4.BeautifulSoup(res.content, "lxml")
     name = soup.find("h1", attrs={"class": "header-new-title"}).text.strip()
@@ -167,7 +185,7 @@ def get_bio(keyphrase: str, name_only: bool = False) -> str:
         return bio
 
 
-def get_name(keyphrase: str) -> str:
+async def get_name(keyphrase: str) -> str:
     """
     Get corrected artist name from Last.fm.
     :param keyphrase: Name of an artist or a band.
@@ -176,26 +194,26 @@ def get_name(keyphrase: str) -> str:
     'Nirvana'
     """
     try:
-        name = get_bio_api(keyphrase, name_only=True)
+        name = await get_bio_api(keyphrase, name_only=True)
     except Exception as e:
         logging.debug(
             f"An error occurred while fetching artist name via Last.fm API: {e}. Proceeding without API."
         )
-        name = get_bio(keyphrase, name_only=True)
+        name = await get_bio(keyphrase, name_only=True)
     return name
 
 
-def get_info(keyphrase: str) -> str:
+async def get_info(keyphrase: str) -> str:
     """
     Get information about the given artist from Last.fm.
     :param keyphrase: Name of an artist or a band.
     :return: Information about the artist.
     """
     try:
-        info = get_bio_api(keyphrase)
+        info = await get_bio_api(keyphrase)
     except Exception as e:
         logging.debug(
             f"An error occurred while fetching artist bio via Last.fm API: {e}. Proceeding without API."
         )
-        info = get_bio(keyphrase)
+        info = await get_bio(keyphrase)
     return info
