@@ -29,14 +29,14 @@ async def get_playlist_api(keyphrase: str, number: int = 3) -> list:
     """
     async with httpx.AsyncClient() as client:
         res = await client.get(
-            f"http://ws.audioscrobbler.com/2.0/?method=artist.gettoptracks&artist={keyphrase}&limit={number}&autocorrect[1]&api_key={LASTFM_API}"
+            f"http://ws.audioscrobbler.com/2.0/?method=artist.gettoptracks&artist={keyphrase}&limit={number}&autocorrect[1]&api_key={LASTFM_API}&format=json"
         )
     res.raise_for_status()
-    soup = bs4.BeautifulSoup(res.content, "lxml")
-    artist = soup.find("toptracks").get("artist")
-    tracks = soup.find_all("track")
+    parsed = json.loads(res.text)
+    artist = parsed["toptracks"]["@attr"]["artist"]
+    tracks = parsed["toptracks"]["track"]
     playlist = [
-        f'{artist} - {tracks[i].find("name").text}'
+        f'{artist} - {tracks[i]["name"]}'
         for i in range(min(number, len(tracks)))
     ]
     return playlist
