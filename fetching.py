@@ -19,30 +19,6 @@ lastfm_api = os.getenv("LASTFM_API")
 youtube_api = os.getenv("YOUTUBE_API")
 
 
-def create_top(keyphrase: str, number: int = 3) -> list:
-    """
-    Create list of str containing YouTube IDs of the top tracks by the given artist according to Last.fm.
-    :param keyphrase: Name of an artist or a band.
-    :param number: Number of top tracks to collect.
-    :return: list of str. List of YouTube IDs.
-    """
-    try:
-        playlist = get_playlist_api(keyphrase, number)
-    except Exception as e:
-        logging.warning(
-            f"An error occurred while creating playlist via Last.fm API: {e}"
-        )
-        logging.info("Creating playlist without API")
-        playlist = get_playlist(keyphrase, number)
-    try:
-        ids = fetch_ids_api(playlist)
-    except Exception as e:
-        logging.warning(f"An error occurred while fetching YouTube ids via API: {e}")
-        logging.info("Fetching YouTube ids without API")
-        ids = fetch_ids(playlist)
-    return ids
-
-
 def get_playlist_api(keyphrase: str, number: int = 3) -> list:
     """
     Create a list of top tracks by given artist using Last.fm API.
@@ -120,38 +96,28 @@ def fetch_ids(playlist: list) -> list:
     return ids
 
 
-def get_name(keyphrase: str) -> str:
+def create_top(keyphrase: str, number: int = 3) -> list:
     """
-    Get corrected artist name from Last.fm.
+    Create list of str containing YouTube IDs of the top tracks by the given artist according to Last.fm.
     :param keyphrase: Name of an artist or a band.
-    :return: Corrected artist name.
-    >>> get_name('norvana')
-    'Nirvana'
+    :param number: Number of top tracks to collect.
+    :return: list of str. List of YouTube IDs.
     """
     try:
-        name = get_bio_api(keyphrase, name_only=True)
+        playlist = get_playlist_api(keyphrase, number)
     except Exception as e:
-        logging.debug(
-            f"An error occurred while fetching artist name via Last.fm API: {e}. Proceeding without API."
+        logging.warning(
+            f"An error occurred while creating playlist via Last.fm API: {e}"
         )
-        name = get_bio(keyphrase, name_only=True)
-    return name
-
-
-def get_info(keyphrase: str) -> str:
-    """
-    Get information about the given artist from Last.fm.
-    :param keyphrase: Name of an artist or a band.
-    :return: Information about the artist.
-    """
+        logging.info("Creating playlist without API")
+        playlist = get_playlist(keyphrase, number)
     try:
-        info = get_bio_api(keyphrase)
+        ids = fetch_ids_api(playlist)
     except Exception as e:
-        logging.debug(
-            f"An error occurred while fetching artist bio via Last.fm API: {e}. Proceeding without API."
-        )
-        info = get_bio(keyphrase)
-    return info
+        logging.warning(f"An error occurred while fetching YouTube ids via API: {e}")
+        logging.info("Fetching YouTube ids without API")
+        ids = fetch_ids(playlist)
+    return ids
 
 
 def get_bio_api(keyphrase: str, name_only: bool = False) -> str:
@@ -199,3 +165,37 @@ def get_bio(keyphrase: str, name_only: bool = False) -> str:
         link = f"https://www.last.fm/music/{name}"
         bio = f"{summary}...\nRead more: {link}"
         return bio
+
+
+def get_name(keyphrase: str) -> str:
+    """
+    Get corrected artist name from Last.fm.
+    :param keyphrase: Name of an artist or a band.
+    :return: Corrected artist name.
+    >>> get_name('norvana')
+    'Nirvana'
+    """
+    try:
+        name = get_bio_api(keyphrase, name_only=True)
+    except Exception as e:
+        logging.debug(
+            f"An error occurred while fetching artist name via Last.fm API: {e}. Proceeding without API."
+        )
+        name = get_bio(keyphrase, name_only=True)
+    return name
+
+
+def get_info(keyphrase: str) -> str:
+    """
+    Get information about the given artist from Last.fm.
+    :param keyphrase: Name of an artist or a band.
+    :return: Information about the artist.
+    """
+    try:
+        info = get_bio_api(keyphrase)
+    except Exception as e:
+        logging.debug(
+            f"An error occurred while fetching artist bio via Last.fm API: {e}. Proceeding without API."
+        )
+        info = get_bio(keyphrase)
+    return info
