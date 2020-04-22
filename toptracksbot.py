@@ -1,8 +1,8 @@
 """
 This module is a part of Top Tracks Bot for Telegram
 and is licensed under the MIT License.
-Copyright (c) 2019 Kirill Plotnikov
-GitHub: https://github.com/pltnk/top_tracks
+Copyright (c) 2019-2020 Kirill Plotnikov
+GitHub: https://github.com/pltnk/toptracksbot
 """
 
 
