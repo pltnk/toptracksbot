@@ -11,7 +11,7 @@ import logging
 import os
 from datetime import datetime
 
-import psycopg2
+import asyncpg
 
 import fetching
 
@@ -23,13 +23,14 @@ logging.basicConfig(
 )
 
 
-def combine(keyphrase: str) -> str:
+async def combine(keyphrase: str) -> str:
     """
     Create JSON array containing YouTube IDs of the top tracks by the given artist according to Last.fm.
     :param keyphrase: Name of an artist or a band.
     :return: str containing JSON array.
     """
-    ids = json.dumps(fetching.create_top(keyphrase))
+    top = await fetching.create_top(keyphrase)
+    ids = json.dumps(top)
     return ids
 
 
@@ -42,44 +43,33 @@ def process(keyphrase: str) -> list:
     :return: List of YouTube IDs.
     """
     try:
-        name = fetching.get_name(keyphrase).lower()
+        name = await fetching.get_name(keyphrase)
+        name = name.lower()
     except Exception as e:
         logging.debug(
             f"An error occurred while fetching artist name from Last.fm: {e}."
         )
         name = keyphrase.lower()
-    con = psycopg2.connect(DATABASE_URL, sslmode="require")
-    cur = con.cursor()
-    cur.execute(f"SELECT EXISTS(SELECT * FROM top WHERE artist = %s)", (name,))
-    exists = cur.fetchone()
-    if exists[0]:
+    conn = await asyncpg.connect(dsn=DATABASE_URL)
+    record = await conn.fetch(f"SELECT * FROM top WHERE artist = '{name}'")
+    if record:
         logging.info(f'There is an artist with the name "{name}" in the database')
-        cur.execute(f"SELECT date FROM top WHERE artist = %s", (name,))
-        date = cur.fetchone()[0]
-        last_updated = datetime.strptime(date, "%Y-%m-%d")
+        await conn.execute(f"UPDATE top SET requests = requests + 1 WHERE artist = '{name}'")
+        last_updated = datetime.strptime(record[0]["date"], "%Y-%m-%d")
         delta = datetime.now() - last_updated
         if delta.days > 30:
             logging.info(f'Entry for "{name}" is older than 30 days. Updating...')
-            cur.execute(
-                f"UPDATE top SET tracks = %s WHERE artist = %s", (combine(name), name)
-            )
-            cur.execute(
-                f"UPDATE top SET date = %s WHERE artist = %s",
-                (datetime.strftime(datetime.now(), "%Y-%m-%d"), name),
-            )
+            tracks = await combine(name)
+            date = datetime.strftime(datetime.now(), "%Y-%m-%d")
+            await conn.execute(f"UPDATE top SET tracks = '{tracks}', date = '{date}' WHERE artist = '{name}'")
             logging.info(f'Entry for "{name}" is updated')
+        else:
+            tracks = record[0]["tracks"]
     else:
         logging.info(f'There is no artist named "{name}" in the database')
-        entry = (name, combine(name), datetime.strftime(datetime.now(), "%Y-%m-%d"), 0)
-        cur.execute(
-            f"INSERT INTO top(artist, tracks, date, requests) VALUES(%s, %s, %s, %s)",
-            entry,
-        )
+        tracks = await combine(name)
+        date = datetime.strftime(datetime.now(), "%Y-%m-%d")
+        await conn.execute(f"INSERT INTO top(artist, tracks, date, requests) VALUES('{name}', '{tracks}', '{date}', 1)")
         logging.info(f'Entry for "{name}" created in the database')
-    cur.execute(f"UPDATE top SET requests = requests + 1 WHERE artist = %s", (name,))
-    con.commit()
-    cur.execute(f"SELECT tracks FROM top WHERE artist = %s", (name,))
-    tracks = json.loads(cur.fetchone()[0])
-    cur.close()
-    con.close()
-    return tracks
+    await conn.close()
+    return json.loads(tracks)
