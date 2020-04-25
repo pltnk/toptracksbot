@@ -25,7 +25,7 @@ logging.basicConfig(
 )
 
 
-def process(keyphrase: str) -> list:
+async def process(keyphrase: str) -> list:
     """
     Check if an entry for the given artist exists in the database, update it if it is outdated,
     create a new entry if it doesn't exist.
