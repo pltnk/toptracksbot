@@ -19,6 +19,9 @@ import httpx
 LASTFM_API = os.getenv("LASTFM_API")
 YOUTUBE_API = os.getenv("YOUTUBE_API")
 
+logger = logging.getLogger("fetching")
+logger.setLevel(logging.DEBUG)
+
 
 async def get_playlist_api(keyphrase: str, number: int = 3) -> list:
     """
@@ -84,7 +87,7 @@ async def fetch_ids_api(playlist: list) -> list:
             parsed = json.loads(res.text)
             video_id = parsed["items"][0]["id"]["videoId"]
             if video_id:
-                logging.info(f"Adding YouTube id for: {playlist[counter]}")
+                logger.info(f"Adding YouTube id for: {playlist[counter]}")
                 ids.append(video_id)
     return ids
 
@@ -108,7 +111,7 @@ async def fetch_ids(playlist: list) -> list:
             parsed = bs4.BeautifulSoup(res.content, "lxml")
             link = parsed.find("a", attrs={"dir": "ltr", "title": re.compile(r".*?")})
             if link:
-                logging.info(f"Adding YouTube id for: {playlist[counter]}")
+                logger.info(f"Adding YouTube id for: {playlist[counter]}")
                 ids.append(link["href"][9:])
     return ids
 
@@ -123,16 +126,16 @@ async def create_top(keyphrase: str, number: int = 3) -> list:
     try:
         playlist = await get_playlist_api(keyphrase, number)
     except Exception as e:
-        logging.warning(
+        logger.warning(
             f"An error occurred while creating playlist via Last.fm API: {e}"
         )
-        logging.info("Creating playlist without API")
+        logger.info("Creating playlist without API")
         playlist = await get_playlist(keyphrase, number)
     try:
         ids = await fetch_ids_api(playlist)
     except Exception as e:
-        logging.warning(f"An error occurred while fetching YouTube ids via API: {e}")
-        logging.info("Fetching YouTube ids without API")
+        logger.warning(f"An error occurred while fetching YouTube ids via API: {e}")
+        logger.info("Fetching YouTube ids without API")
         ids = await fetch_ids(playlist)
     return ids
 
@@ -154,7 +157,7 @@ async def get_bio_api(keyphrase: str, name_only: bool = False) -> str:
     if name_only:
         return name
     else:
-        logging.info(f"Collecting short bio for {name} using Last.fm API.")
+        logger.info(f"Collecting short bio for {name} using Last.fm API.")
         summary = parsed["artist"]["bio"]["summary"][:-21]
         tags = parsed["artist"]["tags"]["tag"]
         tags = ", ".join([tags[i]["name"] for i in range(len(tags))])
@@ -178,7 +181,7 @@ async def get_bio(keyphrase: str, name_only: bool = False) -> str:
     if name_only:
         return name
     else:
-        logging.info(f"Collecting short bio for {name} without Last.fm API.")
+        logger.info(f"Collecting short bio for {name} without Last.fm API.")
         summary = soup.find("div", attrs={"class": "wiki-content"}).text.strip()[:600]
         link = f"https://www.last.fm/music/{name}"
         bio = f"{summary}...\nRead more: {link}"
@@ -196,7 +199,7 @@ async def get_name(keyphrase: str) -> str:
     try:
         name = await get_bio_api(keyphrase, name_only=True)
     except Exception as e:
-        logging.debug(
+        logger.debug(
             f"An error occurred while fetching artist name via Last.fm API: {e}. Proceeding without API."
         )
         name = await get_bio(keyphrase, name_only=True)
@@ -212,7 +215,7 @@ async def get_info(keyphrase: str) -> str:
     try:
         info = await get_bio_api(keyphrase)
     except Exception as e:
-        logging.debug(
+        logger.debug(
             f"An error occurred while fetching artist bio via Last.fm API: {e}. Proceeding without API."
         )
         info = await get_bio(keyphrase)
