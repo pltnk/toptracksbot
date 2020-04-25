@@ -194,7 +194,7 @@ async def get_name(keyphrase: str) -> str:
     Get corrected artist name from Last.fm.
     :param keyphrase: Name of an artist or a band.
     :return: Corrected artist name.
-    >>> get_name('norvana')
+    >>> asyncio.run(get_name('norvana'))
     'Nirvana'
     """
     try:
