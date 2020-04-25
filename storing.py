@@ -20,9 +20,8 @@ import fetching
 DATABASE_URI = os.environ["DATABASE_URI"]
 VALID_FOR_DAYS = 30
 
-logging.basicConfig(
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
-)
+logger = logging.getLogger("storing")
+logger.setLevel(logging.DEBUG)
 
 
 async def process(keyphrase: str) -> list:
@@ -36,7 +35,7 @@ async def process(keyphrase: str) -> list:
         artist = await fetching.get_name(keyphrase)
         artist = artist.lower()
     except Exception as e:
-        logging.debug(
+        logger.debug(
             f"An error occurred while fetching artist name from Last.fm: {e}."
         )
         artist = keyphrase.lower()
@@ -51,13 +50,13 @@ async def process(keyphrase: str) -> list:
         and (today - datetime.strptime(record[0]["date"], "%Y-%m-%d")).days
         < VALID_FOR_DAYS
     ):
-        logging.info(f'There is an artist with the name "{artist}" in the database')
+        logger.info(f'There is an artist with the name "{artist}" in the database')
         await conn.execute(
             f"UPDATE top SET requests = requests + 1 WHERE artist = '{artist}'"
         )
         tracks = json.loads(record[0]["tracks"])
     else:
-        logging.info(
+        logger.info(
             f'There is no artist named "{artist}" in the database or the entry is older than {VALID_FOR_DAYS} days'
         )
         tracks = await fetching.create_top(artist)
@@ -68,6 +67,6 @@ async def process(keyphrase: str) -> list:
                     ON CONFLICT (artist)
                     DO UPDATE SET tracks = '{tracks_json}', date = '{date}', requests = top.requests + 1"""
         await conn.execute(query)
-        logging.info(f'Entry for "{artist}" created/updated in the database')
+        logger.info(f'Entry for "{artist}" created/updated in the database')
     await conn.close()
     return tracks
