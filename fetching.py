@@ -11,6 +11,7 @@ import json
 import logging
 import os
 import re
+from typing import List
 
 import bs4
 import httpx
@@ -23,12 +24,12 @@ logger = logging.getLogger("fetching")
 logger.setLevel(logging.DEBUG)
 
 
-async def get_playlist_api(keyphrase: str, number: int = 3) -> list:
+async def get_playlist_api(keyphrase: str, number: int = 3) -> List[str]:
     """
     Create a list of top tracks by given artist using Last.fm API.
     :param keyphrase: Name of an artist or a band.
     :param number: Number of top tracks to collect.
-    :return: list of str. List of top tracks formatted as '<artist> - <track>'.
+    :return: List of top tracks formatted as '<artist> - <track>'.
     """
     async with httpx.AsyncClient() as client:
         res = await client.get(
@@ -39,18 +40,17 @@ async def get_playlist_api(keyphrase: str, number: int = 3) -> list:
     artist = parsed["toptracks"]["@attr"]["artist"]
     tracks = parsed["toptracks"]["track"]
     playlist = [
-        f'{artist} - {tracks[i]["name"]}'
-        for i in range(min(number, len(tracks)))
+        f'{artist} - {tracks[i]["name"]}' for i in range(min(number, len(tracks)))
     ]
     return playlist
 
 
-async def get_playlist(keyphrase: str, number: int = 3) -> list:
+async def get_playlist(keyphrase: str, number: int = 3) -> List[str]:
     """
     Create a list of top tracks by given artist **without** using Last.fm API.
     :param keyphrase: Name of an artist or a band.
     :param number: Number of top tracks to collect.
-    :return: list of str. List of top tracks formatted as '<artist> - <track>'.
+    :return: List of top tracks formatted as '<artist> - <track>'.
     """
     async with httpx.AsyncClient() as client:
         res = await client.get(
@@ -66,11 +66,11 @@ async def get_playlist(keyphrase: str, number: int = 3) -> list:
     return playlist
 
 
-async def fetch_ids_api(playlist: list) -> list:
+async def fetch_ids_api(playlist: List[str]) -> List[str]:
     """
     Create a list containing an YouTube ID for each track in the given playlist using YouTube API.
-    :param playlist: list of str. List of tracks formatted as '<artist> - <track>'.
-    :return: list of str. List of YouTube IDs.
+    :param playlist: List of tracks formatted as '<artist> - <track>'.
+    :return: List of YouTube IDs.
     """
     ids = []
     async with httpx.AsyncClient() as client:
@@ -92,11 +92,11 @@ async def fetch_ids_api(playlist: list) -> list:
     return ids
 
 
-async def fetch_ids(playlist: list) -> list:
+async def fetch_ids(playlist: List[str]) -> List[str]:
     """
      Create a list containing an YouTube ID for each track in the given playlist **without** using YouTube API.
-     :param playlist: list of str. List of tracks formatted as '<artist> - <track>'.
-     :return: list of str. List of YouTube IDs.
+     :param playlist: List of tracks formatted as '<artist> - <track>'.
+     :return: List of YouTube IDs.
      """
     ids = []
     async with httpx.AsyncClient() as client:
@@ -116,12 +116,13 @@ async def fetch_ids(playlist: list) -> list:
     return ids
 
 
-async def create_top(keyphrase: str, number: int = 3) -> list:
+async def create_top(keyphrase: str, number: int = 3) -> List[str]:
     """
-    Create list of str containing YouTube IDs of the top tracks by the given artist according to Last.fm.
+    Create list of str containing YouTube IDs of the top tracks
+    by the given artist according to Last.fm.
     :param keyphrase: Name of an artist or a band.
     :param number: Number of top tracks to collect.
-    :return: list of str. List of YouTube IDs.
+    :return: List of YouTube IDs.
     """
     try:
         playlist = await get_playlist_api(keyphrase, number)
