@@ -12,6 +12,7 @@ import os
 
 from telegram import ChatAction, Update
 from telegram.ext import CallbackContext, CommandHandler, MessageHandler, Updater
+from telegram.ext.dispatcher import run_async
 from telegram.ext.filters import Filters
 
 import fetching
@@ -40,6 +41,7 @@ def start(update: Update, context: CallbackContext) -> None:
     )
 
 
+@run_async
 def send_top(update: Update, context: CallbackContext) -> None:
     """Process incoming message, send top tracks by the given artist or send an error message."""
     logger.info(
@@ -64,6 +66,7 @@ def send_top(update: Update, context: CallbackContext) -> None:
         )
 
 
+@run_async
 def send_info(update: Update, context: CallbackContext) -> None:
     """Process /info command."""
     logger.info(
