@@ -9,6 +9,7 @@ GitHub: https://github.com/pltnk/toptracksbot
 import json
 import logging
 import os
+import ssl
 from datetime import datetime
 
 import asyncpg
@@ -18,7 +19,6 @@ import fetching
 
 DATABASE_URL = os.environ["DATABASE_URI"]
 VALID_FOR_DAYS = 30
-
 
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
@@ -41,7 +41,10 @@ def process(keyphrase: str) -> list:
         )
         artist = keyphrase.lower()
     today = datetime.now()
-    conn = await asyncpg.connect(dsn=DATABASE_URL)
+    ctx = ssl.create_default_context()
+    ctx.check_hostname = False
+    ctx.verify_mode = ssl.CERT_NONE
+    conn = await asyncpg.connect(dsn=DATABASE_URL, ssl=ctx)
     record = await conn.fetch(f"SELECT * FROM top WHERE artist = '{artist}'")
     if (
         record
