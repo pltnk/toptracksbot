@@ -27,8 +27,9 @@ logger.setLevel(logging.DEBUG)
 
 async def process(keyphrase: str) -> List[str]:
     """
-    Check if an entry for the given artist exists in the database, update it if it is outdated,
-    create a new entry if it doesn't exist.
+    Get YouTube ids of top tracks by the given artist
+    from the database if there is valid data for this artist.
+    Otherwise find valid data and update the database.
     :param keyphrase: Name of an artist or a band.
     :return: List of YouTube IDs.
     """
@@ -36,9 +37,7 @@ async def process(keyphrase: str) -> List[str]:
         artist = await fetching.get_name(keyphrase)
         artist = artist.lower()
     except Exception as e:
-        logger.exception(
-            f"An error occurred while fetching artist name from Last.fm: {e}."
-        )
+        logger.exception(f"Unable to fetch artist name from Last.fm: {e}.")
         artist = keyphrase.lower()
     today = datetime.now()
     ctx = ssl.create_default_context()
@@ -51,15 +50,13 @@ async def process(keyphrase: str) -> List[str]:
         and (today - datetime.strptime(record[0]["date"], "%Y-%m-%d")).days
         < VALID_FOR_DAYS
     ):
-        logger.info(f'There is an artist with the name "{artist}" in the database')
+        logger.info(f"Found valid data for '{artist}' in the database")
         await conn.execute(
             f"UPDATE top SET requests = requests + 1 WHERE artist = '{artist}'"
         )
         tracks = json.loads(record[0]["tracks"])
     else:
-        logger.info(
-            f'There is no artist named "{artist}" in the database or the entry is older than {VALID_FOR_DAYS} days'
-        )
+        logger.info(f"No valid data for '{artist}' in the database")
         tracks = await fetching.create_top(artist)
         tracks_json = json.dumps(tracks)
         date = datetime.strftime(today, "%Y-%m-%d")
@@ -68,6 +65,6 @@ async def process(keyphrase: str) -> List[str]:
                     ON CONFLICT (artist)
                     DO UPDATE SET tracks = '{tracks_json}', date = '{date}', requests = top.requests + 1"""
         await conn.execute(query)
-        logger.info(f'Entry for "{artist}" created/updated in the database')
+        logger.info(f"Database is updated with new data for '{artist}'")
     await conn.close()
     return tracks
