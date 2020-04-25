@@ -10,7 +10,6 @@ import asyncio
 import logging
 import os
 
-from requests.exceptions import HTTPError
 from telegram import ChatAction
 from telegram.ext import CommandHandler, MessageHandler, Updater
 from telegram.ext.filters import Filters
@@ -24,15 +23,16 @@ MODE = os.getenv("BOT_MODE")
 PORT = int(os.environ.get("PORT", "8443"))
 HEROKU_APP = os.getenv("HEROKU_APP")
 
-
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
 )
+logger = logging.getLogger("bot")
+logger.setLevel(logging.DEBUG)
 
 
 def start(update, context):
     """Process /start command that sent to the bot."""
-    logging.info(
+    logger.info(
         f'(start) Incoming message: args={context.args}, text="{update.message.text}"'
     )
     context.bot.send_message(
@@ -42,7 +42,7 @@ def start(update, context):
 
 def send_top(update, context):
     """Process incoming message, send top tracks by the given artist or send an error message."""
-    logging.info(
+    logger.info(
         f'(send_top) Incoming message: args={context.args}, text="{update.message.text}"'
     )
     keyphrase = update.message.text
@@ -55,8 +55,8 @@ def send_top(update, context):
             context.bot.send_message(
                 chat_id=update.message.chat_id, text=f"youtube.com/watch?v={youtube_id}"
             )
-    except HTTPError as e:
-        logging.error(e)
+    except Exception as e:
+        logger.exception(e)
         context.bot.send_message(
             chat_id=update.message.chat_id,
             text=f"An error occurred, most likely I couldn't find this artist on Last.fm."
@@ -66,7 +66,7 @@ def send_top(update, context):
 
 def send_info(update, context):
     """Process /info command."""
-    logging.info(
+    logger.info(
         f'(send_info) Incoming message: args={context.args}, text="{update.message.text}"'
     )
     if len(context.args) == 0:
@@ -85,7 +85,7 @@ def send_info(update, context):
 
 def send_help(update, context):
     """Process /help command."""
-    logging.info(
+    logger.info(
         f'(send_help) Incoming message: args={context.args}, text="{update.message.text}"'
     )
     message = (
@@ -97,7 +97,7 @@ def send_help(update, context):
 
 def unknown(update, context):
     """Process any unknown command."""
-    logging.info(
+    logger.info(
         f'(unknown) Incoming message: args={context.args}, text="{update.message.text}"'
     )
     context.bot.send_message(
@@ -133,11 +133,11 @@ def main():
             updater.start_webhook(listen="0.0.0.0", port=PORT, url_path=TOKEN)
             updater.bot.set_webhook(f"https://{HEROKU_APP}.herokuapp.com/{TOKEN}")
         else:
-            logging.info("Starting bot")
+            logger.info("Starting bot")
             updater.start_polling()
             updater.idle()
     except Exception as e:
-        logging.error(f"Unable to start a bot. {e}")
+        logger.exception(f"Unable to start a bot. {e}")
 
 
 if __name__ == "__main__":
