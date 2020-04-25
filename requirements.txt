@@ -3,4 +3,4 @@ lxml
 asyncpg
 PySocks
 python-telegram-bot
-requests
+httpx
