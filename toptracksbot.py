@@ -18,10 +18,10 @@ import fetching
 import storing
 
 
-TOKEN = os.getenv("BOT_TOKEN")
-MODE = os.getenv("BOT_MODE")
-PORT = int(os.environ.get("PORT", "8443"))
-HEROKU_APP = os.getenv("HEROKU_APP")
+TOKEN = os.environ["BOT_TOKEN"]
+MODE = os.environ["BOT_MODE"]
+PORT = int(os.getenv("PORT", "8443"))
+HEROKU_APP = os.environ["HEROKU_APP"]
 
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
