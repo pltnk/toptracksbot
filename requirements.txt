@@ -1,6 +1,6 @@
 beautifulsoup4
 lxml
-psycopg2-binary
+asyncpg
 PySocks
 python-telegram-bot
 requests
