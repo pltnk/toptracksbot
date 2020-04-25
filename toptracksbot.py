@@ -10,8 +10,8 @@ import asyncio
 import logging
 import os
 
-from telegram import ChatAction
-from telegram.ext import CommandHandler, MessageHandler, Updater
+from telegram import ChatAction, Update
+from telegram.ext import CallbackContext, CommandHandler, MessageHandler, Updater
 from telegram.ext.filters import Filters
 
 import fetching
@@ -30,7 +30,7 @@ logger = logging.getLogger("bot")
 logger.setLevel(logging.DEBUG)
 
 
-def start(update, context):
+def start(update: Update, context: CallbackContext) -> None:
     """Process /start command that sent to the bot."""
     logger.info(
         f'(start) Incoming message: args={context.args}, text="{update.message.text}"'
@@ -40,7 +40,7 @@ def start(update, context):
     )
 
 
-def send_top(update, context):
+def send_top(update: Update, context: CallbackContext) -> None:
     """Process incoming message, send top tracks by the given artist or send an error message."""
     logger.info(
         f'(send_top) Incoming message: args={context.args}, text="{update.message.text}"'
@@ -64,7 +64,7 @@ def send_top(update, context):
         )
 
 
-def send_info(update, context):
+def send_info(update: Update, context: CallbackContext) -> None:
     """Process /info command."""
     logger.info(
         f'(send_info) Incoming message: args={context.args}, text="{update.message.text}"'
@@ -83,7 +83,7 @@ def send_info(update, context):
         context.bot.send_message(chat_id=update.message.chat_id, text=info)
 
 
-def send_help(update, context):
+def send_help(update: Update, context: CallbackContext) -> None:
     """Process /help command."""
     logger.info(
         f'(send_help) Incoming message: args={context.args}, text="{update.message.text}"'
@@ -95,7 +95,7 @@ def send_help(update, context):
     context.bot.send_message(chat_id=update.message.chat_id, text=message)
 
 
-def unknown(update, context):
+def unknown(update: Update, context: CallbackContext) -> None:
     """Process any unknown command."""
     logger.info(
         f'(unknown) Incoming message: args={context.args}, text="{update.message.text}"'
@@ -105,7 +105,7 @@ def unknown(update, context):
     )
 
 
-def main():
+def main() -> None:
     # initialize updater
     updater = Updater(token=TOKEN, use_context=True)
     # updater that uses proxy
