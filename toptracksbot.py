@@ -6,6 +6,7 @@ GitHub: https://github.com/pltnk/toptracksbot
 """
 
 
+import asyncio
 import logging
 import os
 
@@ -17,6 +18,7 @@ from telegram.ext import Updater
 
 import fetching
 import storing
+
 
 TOKEN = os.getenv("BOT_TOKEN")
 MODE = os.getenv("BOT_MODE")
@@ -56,7 +58,7 @@ def send_top(update, context):
         chat_id=update.message.chat_id, action=ChatAction.TYPING
     )
     try:
-        top = storing.process(keyphrase)
+        top = asyncio.run(storing.process(keyphrase))
         for youtube_id in top:
             context.bot.send_message(
                 chat_id=update.message.chat_id, text=f"youtube.com/watch?v={youtube_id}"
