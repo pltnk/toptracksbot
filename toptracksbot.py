@@ -12,9 +12,8 @@ import os
 
 from requests.exceptions import HTTPError
 from telegram import ChatAction
-from telegram.ext import CommandHandler
-from telegram.ext import MessageHandler, Filters
-from telegram.ext import Updater
+from telegram.ext import CommandHandler, MessageHandler, Updater
+from telegram.ext.filters import Filters
 
 import fetching
 import storing
@@ -26,7 +25,7 @@ PORT = int(os.environ.get("PORT", "8443"))
 HEROKU_APP = os.getenv("HEROKU_APP")
 
 # proxy settings
-# REQUEST_KWARGS = {'proxy_url': 'socks5://185.158.249.201:315'}
+# REQUEST_KWARGS = {'proxy_url': 'http://195.189.96.213:3128'}
 
 # updater that uses proxy
 # updater = Updater(token=TOKEN, use_context=True, request_kwargs=REQUEST_KWARGS)
@@ -114,13 +113,13 @@ def unknown(update, context):
 
 
 start_handler = CommandHandler("start", start)
-default_handler = MessageHandler(Filters.text, send_top)
+top_handler = MessageHandler(Filters.text & (~Filters.command), send_top)
 info_handler = CommandHandler("info", send_info)
 help_handler = CommandHandler("help", send_help)
 unknown_handler = MessageHandler(Filters.command, unknown)
 
 dispatcher.add_handler(start_handler)
-dispatcher.add_handler(default_handler)
+dispatcher.add_handler(top_handler)
 dispatcher.add_handler(info_handler)
 dispatcher.add_handler(help_handler)
 dispatcher.add_handler(unknown_handler)
