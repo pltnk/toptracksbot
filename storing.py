@@ -16,7 +16,9 @@ import asyncpg
 import fetching
 
 
-DATABASE_URL = os.environ["DATABASE_URL"]
+DATABASE_URL = os.environ["DATABASE_URI"]
+VALID_FOR_DAYS = 30
+
 
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
@@ -34,7 +36,6 @@ async def combine(keyphrase: str) -> str:
     return ids
 
 
-# noinspection SqlResolve
 def process(keyphrase: str) -> list:
     """
     Check if an entry for the given artist exists in the database, update it if it is outdated,
@@ -50,26 +51,29 @@ def process(keyphrase: str) -> list:
             f"An error occurred while fetching artist name from Last.fm: {e}."
         )
         name = keyphrase.lower()
+    today = datetime.now()
     conn = await asyncpg.connect(dsn=DATABASE_URL)
     record = await conn.fetch(f"SELECT * FROM top WHERE artist = '{name}'")
-    if record:
+    if (
+        record
+        and (today - datetime.strptime(record[0]["date"], "%Y-%m-%d")).days < VALID_FOR_DAYS
+    ):
         logging.info(f'There is an artist with the name "{name}" in the database')
-        await conn.execute(f"UPDATE top SET requests = requests + 1 WHERE artist = '{name}'")
-        last_updated = datetime.strptime(record[0]["date"], "%Y-%m-%d")
-        delta = datetime.now() - last_updated
-        if delta.days > 30:
-            logging.info(f'Entry for "{name}" is older than 30 days. Updating...')
-            tracks = await combine(name)
-            date = datetime.strftime(datetime.now(), "%Y-%m-%d")
-            await conn.execute(f"UPDATE top SET tracks = '{tracks}', date = '{date}' WHERE artist = '{name}'")
-            logging.info(f'Entry for "{name}" is updated')
-        else:
-            tracks = record[0]["tracks"]
+        await conn.execute(
+            f"UPDATE top SET requests = requests + 1 WHERE artist = '{name}'"
+        )
+        tracks = record[0]["tracks"]
     else:
-        logging.info(f'There is no artist named "{name}" in the database')
+        logging.info(
+            f'There is no artist named "{name}" in the database or the entry is older than {VALID_FOR_DAYS} days'
+        )
         tracks = await combine(name)
-        date = datetime.strftime(datetime.now(), "%Y-%m-%d")
-        await conn.execute(f"INSERT INTO top(artist, tracks, date, requests) VALUES('{name}', '{tracks}', '{date}', 1)")
-        logging.info(f'Entry for "{name}" created in the database')
+        date = datetime.strftime(today, "%Y-%m-%d")
+        query = f"""INSERT INTO top (artist, tracks, date, requests) 
+                    VALUES('{name}', '{tracks}', '{date}', 1)
+                    ON CONFLICT (artist)
+                    DO UPDATE SET tracks = '{tracks}', date = '{date}', requests = top.requests + 1"""
+        await conn.execute(query)
+        logging.info(f'Entry for "{name}" created/updated in the database')
     await conn.close()
     return json.loads(tracks)
