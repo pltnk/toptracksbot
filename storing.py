@@ -70,4 +70,4 @@ def process(keyphrase: str) -> list:
         await conn.execute(query)
         logging.info(f'Entry for "{artist}" created/updated in the database')
     await conn.close()
-    return json.loads(tracks)
+    return tracks
