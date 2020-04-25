@@ -24,14 +24,7 @@ MODE = os.getenv("BOT_MODE")
 PORT = int(os.environ.get("PORT", "8443"))
 HEROKU_APP = os.getenv("HEROKU_APP")
 
-# proxy settings
-# REQUEST_KWARGS = {'proxy_url': 'http://195.189.96.213:3128'}
 
-# updater that uses proxy
-# updater = Updater(token=TOKEN, use_context=True, request_kwargs=REQUEST_KWARGS)
-
-updater = Updater(token=TOKEN, use_context=True)
-dispatcher = updater.dispatcher
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
 )
@@ -112,20 +105,29 @@ def unknown(update, context):
     )
 
 
-start_handler = CommandHandler("start", start)
-top_handler = MessageHandler(Filters.text & (~Filters.command), send_top)
-info_handler = CommandHandler("info", send_info)
-help_handler = CommandHandler("help", send_help)
-unknown_handler = MessageHandler(Filters.command, unknown)
-
-dispatcher.add_handler(start_handler)
-dispatcher.add_handler(top_handler)
-dispatcher.add_handler(info_handler)
-dispatcher.add_handler(help_handler)
-dispatcher.add_handler(unknown_handler)
-
-
 def main():
+    # initialize updater
+    updater = Updater(token=TOKEN, use_context=True)
+    # updater that uses proxy
+    # REQUEST_KWARGS = {'proxy_url': 'http://195.189.96.213:3128'}
+    # updater = Updater(token=TOKEN, use_context=True, request_kwargs=REQUEST_KWARGS)
+    dispatcher = updater.dispatcher
+
+    # initialize handlers
+    start_handler = CommandHandler("start", start)
+    top_handler = MessageHandler(Filters.text & (~Filters.command), send_top)
+    info_handler = CommandHandler("info", send_info)
+    help_handler = CommandHandler("help", send_help)
+    unknown_handler = MessageHandler(Filters.command, unknown)
+
+    # add handlers to dispatcher
+    dispatcher.add_handler(start_handler)
+    dispatcher.add_handler(top_handler)
+    dispatcher.add_handler(info_handler)
+    dispatcher.add_handler(help_handler)
+    dispatcher.add_handler(unknown_handler)
+
+    # start bot
     try:
         if MODE == "prod":
             updater.start_webhook(listen="0.0.0.0", port=PORT, url_path=TOKEN)
