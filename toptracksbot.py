@@ -87,7 +87,7 @@ def send_info(update, context):
         context.bot.send_chat_action(
             chat_id=update.message.chat_id, action=ChatAction.TYPING
         )
-        info = fetching.get_info(keyphrase)
+        info = asyncio.run(fetching.get_info(keyphrase))
         context.bot.send_message(chat_id=update.message.chat_id, text=info)
 
 
