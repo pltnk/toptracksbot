@@ -11,6 +11,7 @@ import logging
 import os
 import ssl
 from datetime import datetime
+from typing import List
 
 import asyncpg
 
@@ -24,7 +25,7 @@ logger = logging.getLogger("storing")
 logger.setLevel(logging.DEBUG)
 
 
-async def process(keyphrase: str) -> list:
+async def process(keyphrase: str) -> List[str]:
     """
     Check if an entry for the given artist exists in the database, update it if it is outdated,
     create a new entry if it doesn't exist.
