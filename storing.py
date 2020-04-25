@@ -44,7 +44,7 @@ def process(keyphrase: str) -> list:
     ctx = ssl.create_default_context()
     ctx.check_hostname = False
     ctx.verify_mode = ssl.CERT_NONE
-    conn = await asyncpg.connect(dsn=DATABASE_URL, ssl=ctx)
+    conn = await asyncpg.connect(dsn=DATABASE_URI, ssl=ctx)
     record = await conn.fetch(f"SELECT * FROM top WHERE artist = '{artist}'")
     if (
         record
