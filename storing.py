@@ -17,7 +17,7 @@ import asyncpg
 import fetching
 
 
-DATABASE_URL = os.environ["DATABASE_URI"]
+DATABASE_URI = os.environ["DATABASE_URI"]
 VALID_FOR_DAYS = 30
 
 logging.basicConfig(
