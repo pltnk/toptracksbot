@@ -26,7 +26,7 @@ logger.setLevel(logging.DEBUG)
 
 async def get_playlist_api(keyphrase: str, number: int = 3) -> List[str]:
     """
-    Create a list of top tracks by given artist using Last.fm API.
+    Create a list of top tracks by the given artist using Last.fm API.
     :param keyphrase: Name of an artist or a band.
     :param number: Number of top tracks to collect.
     :return: List of top tracks formatted as '<artist> - <track>'.
@@ -47,7 +47,7 @@ async def get_playlist_api(keyphrase: str, number: int = 3) -> List[str]:
 
 async def get_playlist(keyphrase: str, number: int = 3) -> List[str]:
     """
-    Create a list of top tracks by given artist **without** using Last.fm API.
+    Create a list of top tracks by the given artist **without** using Last.fm API.
     :param keyphrase: Name of an artist or a band.
     :param number: Number of top tracks to collect.
     :return: List of top tracks formatted as '<artist> - <track>'.
@@ -68,7 +68,8 @@ async def get_playlist(keyphrase: str, number: int = 3) -> List[str]:
 
 async def fetch_ids_api(playlist: List[str]) -> List[str]:
     """
-    Create a list containing an YouTube ID for each track in the given playlist using YouTube API.
+    Create a list containing a YouTube ID for an each track
+    in the given playlist using YouTube API.
     :param playlist: List of tracks formatted as '<artist> - <track>'.
     :return: List of YouTube IDs.
     """
@@ -94,7 +95,8 @@ async def fetch_ids_api(playlist: List[str]) -> List[str]:
 
 async def fetch_ids(playlist: List[str]) -> List[str]:
     """
-     Create a list containing an YouTube ID for each track in the given playlist **without** using YouTube API.
+     Create a list containing a YouTube ID for an each track
+     in the given playlist **without** using YouTube API.
      :param playlist: List of tracks formatted as '<artist> - <track>'.
      :return: List of YouTube IDs.
      """
@@ -119,7 +121,7 @@ async def fetch_ids(playlist: List[str]) -> List[str]:
 async def create_top(keyphrase: str, number: int = 3) -> List[str]:
     """
     Create list of str containing YouTube IDs of the top tracks
-    by the given artist according to Last.fm.
+    by the given artist according to Last.fm overall charts.
     :param keyphrase: Name of an artist or a band.
     :param number: Number of top tracks to collect.
     :return: List of YouTube IDs.
@@ -143,9 +145,9 @@ async def create_top(keyphrase: str, number: int = 3) -> List[str]:
 
 async def get_bio_api(keyphrase: str, name_only: bool = False) -> str:
     """
-    Collect a correct name and short bio of the given artist using Last.fm API.
+    Collect a correct name and a short bio of the given artist using Last.fm API.
     :param keyphrase: Name of an artist or a band.
-    :param name_only: Switch between returns.
+    :param name_only: If True return only artist's name.
     :return: Either just a name of an artist or their short bio.
     """
     async with httpx.AsyncClient() as client:
@@ -169,9 +171,9 @@ async def get_bio_api(keyphrase: str, name_only: bool = False) -> str:
 
 async def get_bio(keyphrase: str, name_only: bool = False) -> str:
     """
-    Collect a correct name and short bio of the given artist **without** using Last.fm API.
+    Collect a correct name and a short bio of the given artist **without** using Last.fm API.
     :param keyphrase: Name of an artist or a band.
-    :param name_only: Switch between returns.
+    :param name_only: If True return only artist's name.
     :return: Either just a name of an artist or their short bio.
     """
     async with httpx.AsyncClient() as client:
