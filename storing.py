@@ -36,7 +36,7 @@ async def process(keyphrase: str) -> List[str]:
         artist = await fetching.get_name(keyphrase)
         artist = artist.lower()
     except Exception as e:
-        logger.debug(
+        logger.exception(
             f"An error occurred while fetching artist name from Last.fm: {e}."
         )
         artist = keyphrase.lower()
