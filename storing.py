@@ -60,7 +60,7 @@ async def process(keyphrase: str) -> List[str]:
         tracks = await fetching.create_top(artist)
         tracks_json = json.dumps(tracks)
         date = datetime.strftime(today, "%Y-%m-%d")
-        query = f"""INSERT INTO top (artist, tracks, date, requests) 
+        query = f"""INSERT INTO top (artist, tracks, date, requests)
                     VALUES('{artist}', '{tracks_json}', '{date}', 1)
                     ON CONFLICT (artist)
                     DO UPDATE SET tracks = '{tracks_json}', date = '{date}', requests = top.requests + 1"""
