@@ -188,8 +188,11 @@ async def get_bio(keyphrase: str, name_only: bool = False) -> str:
     else:
         logger.info(f"Collecting short bio for {name} without Last.fm API.")
         summary = soup.find("div", attrs={"class": "wiki-content"}).text.strip()[:600]
+        similar_block = soup.find("section", attrs={"class": "buffer-standard hidden-xs"})
+        similar = similar_block.find_all("a", attrs={"class": "link-block-target"})
+        similar_str = ", ".join([item.text for item in similar])
         link = f"https://www.last.fm/music/{name}"
-        bio = f"{summary}...\nRead more: {link}"
+        bio = f"{summary}...\nSimilar: {similar_str}\nRead more: {link}"
         return bio
 
 
