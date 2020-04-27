@@ -163,9 +163,11 @@ async def get_bio_api(keyphrase: str, name_only: bool = False) -> str:
         logger.info(f"Collecting short bio for {name} using Last.fm API.")
         summary = parsed["artist"]["bio"]["summary"].split("<a href=")[0]
         tags = parsed["artist"]["tags"]["tag"]
-        tags = ", ".join([tags[i]["name"] for i in range(len(tags))])
+        tags_str = ", ".join([item["name"] for item in tags])
+        similar = parsed["artist"]["similar"]["artist"]
+        similar_str = ", ".join([item["name"] for item in similar])
         link = parsed["artist"]["url"]
-        bio = f"{summary}\nTags: {tags}\nRead more: {link}"
+        bio = f"{summary}\nTags: {tags_str}\nSimilar: {similar_str}\nRead more: {link}"
         return bio
 
 
