@@ -1,7 +1,6 @@
-
 api_keys.txt
-runtime.txt
 Procfile.windows
 drafts.py
 /.idea/
 /__pycache__/
+/.mypy_cache/
