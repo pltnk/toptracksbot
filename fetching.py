@@ -196,6 +196,15 @@ async def get_bio(keyphrase: str, name_only: bool = False) -> str:
         return bio
 
 
+async def get_corrected_name_api(keyphrase: str) -> str:
+    async with httpx.AsyncClient() as client:
+        res = await client.get(f"http://ws.audioscrobbler.com/2.0/?method=artist.getcorrection&artist={keyphrase}&api_key={LASTFM_API}&format=json")
+    res.raise_for_status()
+    parsed = json.loads(res.text)
+    name = parsed["corrections"]["correction"]["artist"]["name"]
+    return name
+
+
 async def get_name(keyphrase: str) -> str:
     """
     Get corrected artist name from Last.fm.
