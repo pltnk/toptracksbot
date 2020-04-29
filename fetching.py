@@ -220,12 +220,18 @@ async def get_name(keyphrase: str) -> str:
     'Nirvana'
     """
     try:
-        name = await get_bio_api(keyphrase, name_only=True)
+        name = await get_corrected_name_api(keyphrase)
     except Exception as e:
         logger.debug(
-            f"An error occurred while fetching artist name via Last.fm API: {e}. Proceeding without API."
+            f"Unable to fetch artist name via Last.fm API method artist.getCorrection: {e}. Proceeding with artist.getInfo method."
         )
-        name = await get_bio(keyphrase, name_only=True)
+        try:
+            name = await get_bio_api(keyphrase, name_only=True)
+        except Exception as e:
+            logger.debug(
+                f"An error occurred while fetching artist name via Last.fm API: {e}. Proceeding without API."
+            )
+            name = await get_bio(keyphrase, name_only=True)
     return name
 
 
