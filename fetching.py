@@ -196,6 +196,21 @@ async def get_bio(keyphrase: str, name_only: bool = False) -> str:
         return bio
 
 
+async def get_corrected_name_api(keyphrase: str) -> str:
+    """
+    Get corrected artist name via Last.fm API method
+    artist.getCorrection. See: https://last.fm/api/show/artist.getCorrection
+    :param keyphrase: Name of an artist or a band.
+    :return: Corrected artist name.
+    """
+    async with httpx.AsyncClient() as client:
+        res = await client.get(f"http://ws.audioscrobbler.com/2.0/?method=artist.getcorrection&artist={keyphrase}&api_key={LASTFM_API}&format=json")
+    res.raise_for_status()
+    parsed = json.loads(res.text)
+    name = parsed["corrections"]["correction"]["artist"]["name"]
+    return name
+
+
 async def get_name(keyphrase: str) -> str:
     """
     Get corrected artist name from Last.fm.
@@ -205,12 +220,18 @@ async def get_name(keyphrase: str) -> str:
     'Nirvana'
     """
     try:
-        name = await get_bio_api(keyphrase, name_only=True)
+        name = await get_corrected_name_api(keyphrase)
     except Exception as e:
         logger.debug(
-            f"An error occurred while fetching artist name via Last.fm API: {e}. Proceeding without API."
+            f"Unable to fetch artist name via Last.fm API method artist.getCorrection: {e}. Proceeding with artist.getInfo method."
         )
-        name = await get_bio(keyphrase, name_only=True)
+        try:
+            name = await get_bio_api(keyphrase, name_only=True)
+        except Exception as e:
+            logger.debug(
+                f"An error occurred while fetching artist name via Last.fm API: {e}. Proceeding without API."
+            )
+            name = await get_bio(keyphrase, name_only=True)
     return name
 
 

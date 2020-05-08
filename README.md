@@ -5,14 +5,14 @@
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![License](https://img.shields.io/github/license/pltnk/top_tracks)](https://choosealicense.com/licenses/mit/)
 
-This bot fetches video from YouTube for the top three tracks by specified artist according to Last.fm overall charts.
+This bot fetches video from YouTube for the top three tracks of all time by specified artist according to Last.fm charts.
 
 The bot is deployed on Heroku and you can try it in Telegram: [@toptracksbot](http://t.me/toptracksbot)
 
 ## Built With
 * [python-telegram-bot](https://github.com/python-telegram-bot/python-telegram-bot) - This library provides a pure Python interface for the Telegram Bot API.
 * [httpx](https://github.com/encode/httpx) - A next-generation HTTP client for Python.
-* [asyncpg](https://github.com/MagicStack/asyncpg) - A fast PostgreSQL Database Client Library for Python/asyncio
+* [asyncpg](https://github.com/MagicStack/asyncpg) - A fast PostgreSQL Database Client Library for Python/asyncio.
 * [Beautiful Soup 4](https://www.crummy.com/software/BeautifulSoup/) - Beautiful Soup is a library that makes it easy to scrape information from web pages. 
 
 ## License
