@@ -100,7 +100,9 @@ def send_help(update: Update, context: CallbackContext) -> None:
     )
     message = (
         "Enter an artist or a band name to get their top three tracks of all time "
-        "according to last.fm charts.\n/info <artist> - get short bio of an artist\n/help - show this message."
+        "according to last.fm charts.\n"
+        "/info <artist> or /i <artist> - get short bio of an artist\n"
+        "/help or /h - show this message."
     )
     context.bot.send_message(chat_id=update.message.chat_id, text=message)
 
@@ -126,8 +128,8 @@ def main() -> None:
     # initialize handlers
     start_handler = CommandHandler("start", start)
     top_handler = MessageHandler(Filters.text & (~Filters.command), send_top)
-    info_handler = CommandHandler("info", send_info)
-    help_handler = CommandHandler("help", send_help)
+    info_handler = CommandHandler(["info", "i"], send_info)
+    help_handler = CommandHandler(["help", "h"], send_help)
     unknown_handler = MessageHandler(Filters.command, unknown)
 
     # add handlers to dispatcher
