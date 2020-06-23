@@ -167,7 +167,7 @@ async def get_bio_api(keyphrase: str, name_only: bool = False) -> str:
         similar = parsed["artist"]["similar"]["artist"]
         similar_str = ", ".join([item["name"] for item in similar])
         link = parsed["artist"]["url"]
-        bio = f"{summary}\nTags: {tags_str}\nSimilar: {similar_str}\nRead more: {link}"
+        bio = f"{summary}\n\nTags: {tags_str}\n\nSimilar: {similar_str}\n\nRead more: {link}"
         return bio
 
 
@@ -192,7 +192,7 @@ async def get_bio(keyphrase: str, name_only: bool = False) -> str:
         similar = similar_block.find_all("a", attrs={"class": "link-block-target"})
         similar_str = ", ".join([item.text for item in similar])
         link = f"https://www.last.fm/music/{name}"
-        bio = f"{summary}...\nSimilar: {similar_str}\nRead more: {link}"
+        bio = f"{summary}...\n\nSimilar: {similar_str}\n\nRead more: {link}"
         return bio
 
 
