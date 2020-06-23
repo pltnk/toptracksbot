@@ -53,9 +53,16 @@ def send_top(update: Update, context: CallbackContext) -> None:
     )
     try:
         top = asyncio.run(storing.process(keyphrase))
-        for youtube_id in top:
+        if top:
+            for youtube_id in top:
+                context.bot.send_message(
+                    chat_id=update.message.chat_id,
+                    text=f"youtube.com/watch?v={youtube_id}",
+                )
+        else:
             context.bot.send_message(
-                chat_id=update.message.chat_id, text=f"youtube.com/watch?v={youtube_id}"
+                chat_id=update.message.chat_id,
+                text=f"I couldn't find videos of {keyphrase} on YouTube.",
             )
     except Exception as e:
         logger.exception(e)
