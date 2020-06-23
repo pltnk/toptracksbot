@@ -58,13 +58,14 @@ async def process(keyphrase: str) -> List[str]:
     else:
         logger.info(f"No valid data for '{artist}' in the database")
         tracks = await fetching.create_top(artist)
-        tracks_json = json.dumps(tracks)
-        date = datetime.strftime(today, "%Y-%m-%d")
-        query = f"""INSERT INTO top (artist, tracks, date, requests)
-                    VALUES('{artist}', '{tracks_json}', '{date}', 1)
-                    ON CONFLICT (artist)
-                    DO UPDATE SET tracks = '{tracks_json}', date = '{date}', requests = top.requests + 1"""
-        await conn.execute(query)
-        logger.info(f"Database is updated with new data for '{artist}'")
+        if tracks:
+            tracks_json = json.dumps(tracks)
+            date = datetime.strftime(today, "%Y-%m-%d")
+            query = f"""INSERT INTO top (artist, tracks, date, requests)
+                        VALUES('{artist}', '{tracks_json}', '{date}', 1)
+                        ON CONFLICT (artist)
+                        DO UPDATE SET tracks = '{tracks_json}', date = '{date}', requests = top.requests + 1"""
+            await conn.execute(query)
+            logger.info(f"Database is updated with new data for '{artist}'")
     await conn.close()
     return tracks
