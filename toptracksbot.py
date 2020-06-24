@@ -91,9 +91,9 @@ def send_help(update: Update, context: CallbackContext) -> None:
     )
     message = (
         "Enter an artist or a band name to get their top three tracks of all time "
-        "according to last.fm charts.\n"
+        "according to Last.fm charts.\n"
         "/info <artist> or /i <artist> - get a short bio of an artist\n"
-        "/help or /h - show this message.\n"
+        "/help or /h - show this message.\n\n"
         "This bot is an open source project, check it on GitHub: github.com/pltnk/toptracksbot"
     )
     context.bot.send_message(chat_id=update.message.chat_id, text=message)
