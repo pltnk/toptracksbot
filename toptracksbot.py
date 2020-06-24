@@ -85,7 +85,7 @@ def send_info(update: Update, context: CallbackContext) -> None:
 
 @run_async
 def send_help(update: Update, context: CallbackContext) -> None:
-    """Process /help command."""
+    """Process /help and /start commands."""
     logger.info(
         f'(send_help) Incoming message: args={context.args}, text="{update.message.text}"'
     )
