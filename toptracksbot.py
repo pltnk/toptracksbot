@@ -31,16 +31,6 @@ logger = logging.getLogger("bot")
 logger.setLevel(logging.DEBUG)
 
 
-def start(update: Update, context: CallbackContext) -> None:
-    """Process /start command that sent to the bot."""
-    logger.info(
-        f'(start) Incoming message: args={context.args}, text="{update.message.text}"'
-    )
-    context.bot.send_message(
-        chat_id=update.message.chat_id, text="Enter an artist or a band name."
-    )
-
-
 @run_async
 def send_top(update: Update, context: CallbackContext) -> None:
     """Process incoming message, send top tracks by the given artist or send an error message."""
@@ -127,14 +117,12 @@ def main() -> None:
     dispatcher = updater.dispatcher
 
     # initialize handlers
-    start_handler = CommandHandler("start", start)
     top_handler = MessageHandler(Filters.text & (~Filters.command), send_top)
     info_handler = CommandHandler(["info", "i"], send_info)
-    help_handler = CommandHandler(["help", "h"], send_help)
+    help_handler = CommandHandler(["help", "h", "start"], send_help)
     unknown_handler = MessageHandler(Filters.command, unknown)
 
     # add handlers to dispatcher
-    dispatcher.add_handler(start_handler)
     dispatcher.add_handler(top_handler)
     dispatcher.add_handler(info_handler)
     dispatcher.add_handler(help_handler)
