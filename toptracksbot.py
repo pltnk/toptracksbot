@@ -83,6 +83,7 @@ def send_info(update: Update, context: CallbackContext) -> None:
         context.bot.send_message(chat_id=update.message.chat_id, text=info)
 
 
+@run_async
 def send_help(update: Update, context: CallbackContext) -> None:
     """Process /help command."""
     logger.info(
@@ -98,6 +99,7 @@ def send_help(update: Update, context: CallbackContext) -> None:
     context.bot.send_message(chat_id=update.message.chat_id, text=message)
 
 
+@run_async
 def unknown(update: Update, context: CallbackContext) -> None:
     """Process any unknown command."""
     logger.info(
