@@ -31,16 +31,6 @@ logger = logging.getLogger("bot")
 logger.setLevel(logging.DEBUG)
 
 
-def start(update: Update, context: CallbackContext) -> None:
-    """Process /start command that sent to the bot."""
-    logger.info(
-        f'(start) Incoming message: args={context.args}, text="{update.message.text}"'
-    )
-    context.bot.send_message(
-        chat_id=update.message.chat_id, text="Enter an artist or a band name."
-    )
-
-
 @run_async
 def send_top(update: Update, context: CallbackContext) -> None:
     """Process incoming message, send top tracks by the given artist or send an error message."""
@@ -93,21 +83,23 @@ def send_info(update: Update, context: CallbackContext) -> None:
         context.bot.send_message(chat_id=update.message.chat_id, text=info)
 
 
+@run_async
 def send_help(update: Update, context: CallbackContext) -> None:
-    """Process /help command."""
+    """Process /help and /start commands."""
     logger.info(
         f'(send_help) Incoming message: args={context.args}, text="{update.message.text}"'
     )
     message = (
         "Enter an artist or a band name to get their top three tracks of all time "
-        "according to last.fm charts.\n"
+        "according to Last.fm charts.\n"
         "/info <artist> or /i <artist> - get a short bio of an artist\n"
-        "/help or /h - show this message.\n"
+        "/help or /h - show this message.\n\n"
         "This bot is an open source project, check it on GitHub: github.com/pltnk/toptracksbot"
     )
     context.bot.send_message(chat_id=update.message.chat_id, text=message)
 
 
+@run_async
 def unknown(update: Update, context: CallbackContext) -> None:
     """Process any unknown command."""
     logger.info(
@@ -127,14 +119,12 @@ def main() -> None:
     dispatcher = updater.dispatcher
 
     # initialize handlers
-    start_handler = CommandHandler("start", start)
     top_handler = MessageHandler(Filters.text & (~Filters.command), send_top)
     info_handler = CommandHandler(["info", "i"], send_info)
-    help_handler = CommandHandler(["help", "h"], send_help)
+    help_handler = CommandHandler(["help", "h", "start"], send_help)
     unknown_handler = MessageHandler(Filters.command, unknown)
 
     # add handlers to dispatcher
-    dispatcher.add_handler(start_handler)
     dispatcher.add_handler(top_handler)
     dispatcher.add_handler(info_handler)
     dispatcher.add_handler(help_handler)
