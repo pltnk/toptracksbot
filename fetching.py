@@ -1,7 +1,7 @@
 """
 This module is a part of Top Tracks Bot for Telegram
 and is licensed under the MIT License.
-Copyright (c) 2019-2020 Kirill Plotnikov
+Copyright (c) 2019-2021 Kirill Plotnikov
 GitHub: https://github.com/pltnk/toptracksbot
 """
 
@@ -33,7 +33,9 @@ async def get_playlist_api(keyphrase: str, number: int = 3) -> List[str]:
     """
     async with httpx.AsyncClient() as client:
         res = await client.get(
-            f"http://ws.audioscrobbler.com/2.0/?method=artist.gettoptracks&artist={keyphrase}&limit={number}&autocorrect[1]&api_key={LASTFM_API}&format=json"
+            f"https://ws.audioscrobbler.com/2.0/"
+            f"?method=artist.gettoptracks&artist={keyphrase}&limit={number}"
+            f"&autocorrect[1]&api_key={LASTFM_API}&format=json"
         )
     res.raise_for_status()
     parsed = json.loads(res.text)
@@ -79,7 +81,8 @@ async def fetch_ids_api(playlist: List[str]) -> List[str]:
         for track in playlist:
             tasks.append(
                 client.get(
-                    f"https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=1&q={track}&key={YOUTUBE_API}"
+                    f"https://www.googleapis.com/youtube/v3/search"
+                    f"?part=snippet&maxResults=1&q={track}&key={YOUTUBE_API}"
                 )
             )
         result = await asyncio.gather(*tasks)
@@ -95,11 +98,11 @@ async def fetch_ids_api(playlist: List[str]) -> List[str]:
 
 async def fetch_ids(playlist: List[str]) -> List[str]:
     """
-     Create a list containing a YouTube ID for an each track
-     in the given playlist **without** using YouTube API.
-     :param playlist: List of tracks formatted as '<artist> - <track>'.
-     :return: List of YouTube IDs.
-     """
+    Create a list containing a YouTube ID for an each track
+    in the given playlist **without** using YouTube API.
+    :param playlist: List of tracks formatted as '<artist> - <track>'.
+    :return: List of YouTube IDs.
+    """
     ids = []
     async with httpx.AsyncClient() as client:
         tasks = []
@@ -152,7 +155,8 @@ async def get_bio_api(keyphrase: str, name_only: bool = False) -> str:
     """
     async with httpx.AsyncClient() as client:
         res = await client.get(
-            f"http://ws.audioscrobbler.com/2.0/?method=artist.getinfo&artist={keyphrase}&autocorrect[1]&api_key={LASTFM_API}&format=json"
+            f"https://ws.audioscrobbler.com/2.0/"
+            f"?method=artist.getinfo&artist={keyphrase}&autocorrect[1]&api_key={LASTFM_API}&format=json"
         )
     res.raise_for_status()
     parsed = json.loads(res.text)
@@ -188,7 +192,9 @@ async def get_bio(keyphrase: str, name_only: bool = False) -> str:
     else:
         logger.info(f"Collecting short bio for {name} without Last.fm API.")
         summary = soup.find("div", attrs={"class": "wiki-content"}).text.strip()[:600]
-        similar_block = soup.find("section", attrs={"class": "buffer-standard hidden-xs"})
+        similar_block = soup.find(
+            "section", attrs={"class": "buffer-standard hidden-xs"}
+        )
         similar = similar_block.find_all("a", attrs={"class": "link-block-target"})
         similar_str = ", ".join([item.text for item in similar])
         link = f"https://www.last.fm/music/{name}"
@@ -204,7 +210,10 @@ async def get_corrected_name_api(keyphrase: str) -> str:
     :return: Corrected artist name.
     """
     async with httpx.AsyncClient() as client:
-        res = await client.get(f"http://ws.audioscrobbler.com/2.0/?method=artist.getcorrection&artist={keyphrase}&api_key={LASTFM_API}&format=json")
+        res = await client.get(
+            f"https://ws.audioscrobbler.com/2.0/"
+            f"?method=artist.getcorrection&artist={keyphrase}&api_key={LASTFM_API}&format=json"
+        )
     res.raise_for_status()
     parsed = json.loads(res.text)
     name = parsed["corrections"]["correction"]["artist"]["name"]
@@ -223,7 +232,8 @@ async def get_name(keyphrase: str) -> str:
         name = await get_corrected_name_api(keyphrase)
     except Exception as e:
         logger.debug(
-            f"Unable to fetch artist name via Last.fm API method artist.getCorrection: {e}. Proceeding with artist.getInfo method."
+            f"Unable to fetch artist name via Last.fm API method artist.getCorrection: {e}. "
+            f"Proceeding with artist.getInfo method."
         )
         try:
             name = await get_bio_api(keyphrase, name_only=True)
