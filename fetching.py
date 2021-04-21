@@ -19,6 +19,7 @@ import httpx
 
 LASTFM_API = os.getenv("LASTFM_API")
 YOUTUBE_API = os.getenv("YOUTUBE_API")
+YOUTUBE_REGEXP = re.compile("var ytInitialData = (?P<json>.+);</script>")
 
 logger = logging.getLogger("fetching")
 logger.setLevel(logging.DEBUG)
@@ -112,12 +113,21 @@ async def fetch_ids(playlist: List[str]) -> List[str]:
             )
         result = await asyncio.gather(*tasks)
     for counter, res in enumerate(result):
-        if res.status_code == 200:
-            parsed = bs4.BeautifulSoup(res.content, "lxml")
-            link = parsed.find("a", attrs={"dir": "ltr", "title": re.compile(r".*?")})
-            if link:
-                logger.info(f"Adding YouTube id for: {playlist[counter]}")
-                ids.append(link["href"][9:])
+        if isinstance(res, httpx.Response) and res.status_code == 200:
+            try:
+                match = YOUTUBE_REGEXP.search(res.text)
+                data = json.loads(match.group("json"))
+                # fmt:off
+                slr = data["contents"]["twoColumnSearchResultsRenderer"]["primaryContents"]["sectionListRenderer"]
+                yt_id = slr["contents"][0]["itemSectionRenderer"]["contents"][0]["videoRenderer"]["videoId"]
+                # fmt:on
+            except Exception as e:
+                logger.exception(
+                    f"Unable to fetch YouTube ID *without* API for {playlist[counter]}: {e}"
+                )
+            else:
+                logger.debug(f"Adding YouTube id for: {playlist[counter]}")
+                ids.append(yt_id)
     return ids
 
 
