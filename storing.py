@@ -1,7 +1,7 @@
 """
 This module is a part of Top Tracks Bot for Telegram
 and is licensed under the MIT License.
-Copyright (c) 2019-2020 Kirill Plotnikov
+Copyright (c) 2019-2021 Kirill Plotnikov
 GitHub: https://github.com/pltnk/toptracksbot
 """
 
@@ -25,6 +25,30 @@ logger = logging.getLogger("storing")
 logger.setLevel(logging.DEBUG)
 
 
+async def connect_pg() -> asyncpg.connection.Connection:
+    """Connect PostrgeSQL database."""
+    ctx = ssl.create_default_context()
+    ctx.check_hostname = False
+    ctx.verify_mode = ssl.CERT_NONE
+    conn = await asyncpg.connect(dsn=DATABASE_URI, ssl=ctx)
+    return conn
+
+
+async def get_artist(keyphrase: str) -> str:
+    """
+    Get a proper artist name using keyphrase.
+    :param keyphrase: Alleged artist name.
+    :return: Artist name.
+    """
+    try:
+        artist = await fetching.get_name(keyphrase)
+        artist = artist.lower()
+    except Exception as e:
+        logger.exception(f"Unable to fetch artist name from Last.fm: {e}.")
+        artist = keyphrase.lower()
+    return artist
+
+
 async def process(keyphrase: str) -> List[str]:
     """
     Get YouTube ids of top tracks by the given artist
@@ -33,17 +57,9 @@ async def process(keyphrase: str) -> List[str]:
     :param keyphrase: Name of an artist or a band.
     :return: List of YouTube IDs.
     """
-    try:
-        artist = await fetching.get_name(keyphrase)
-        artist = artist.lower()
-    except Exception as e:
-        logger.exception(f"Unable to fetch artist name from Last.fm: {e}.")
-        artist = keyphrase.lower()
+    artist = await get_artist(keyphrase)
     today = datetime.now()
-    ctx = ssl.create_default_context()
-    ctx.check_hostname = False
-    ctx.verify_mode = ssl.CERT_NONE
-    conn = await asyncpg.connect(dsn=DATABASE_URI, ssl=ctx)
+    conn = await connect_pg()
     record = await conn.fetch(f"SELECT * FROM top WHERE artist = '{artist}'")
     if (
         record
