@@ -12,7 +12,6 @@ import os
 
 from telegram import ChatAction, Update
 from telegram.ext import CallbackContext, CommandHandler, MessageHandler, Updater
-from telegram.ext.dispatcher import run_async
 from telegram.ext.filters import Filters
 
 import fetching
@@ -31,7 +30,6 @@ logger = logging.getLogger("bot")
 logger.setLevel(logging.DEBUG)
 
 
-@run_async
 def send_top(update: Update, context: CallbackContext) -> None:
     """Process incoming message, send top tracks by the given artist or send an error message."""
     logger.info(
@@ -63,7 +61,6 @@ def send_top(update: Update, context: CallbackContext) -> None:
         )
 
 
-@run_async
 def send_info(update: Update, context: CallbackContext) -> None:
     """Process /info command."""
     logger.info(
@@ -83,7 +80,6 @@ def send_info(update: Update, context: CallbackContext) -> None:
         context.bot.send_message(chat_id=update.message.chat_id, text=info)
 
 
-@run_async
 def send_help(update: Update, context: CallbackContext) -> None:
     """Process /help and /start commands."""
     logger.info(
@@ -99,7 +95,6 @@ def send_help(update: Update, context: CallbackContext) -> None:
     context.bot.send_message(chat_id=update.message.chat_id, text=message)
 
 
-@run_async
 def unknown(update: Update, context: CallbackContext) -> None:
     """Process any unknown command."""
     logger.info(
@@ -119,10 +114,12 @@ def main() -> None:
     dispatcher = updater.dispatcher
 
     # initialize handlers
-    top_handler = MessageHandler(Filters.text & (~Filters.command), send_top)
-    info_handler = CommandHandler(["info", "i"], send_info)
-    help_handler = CommandHandler(["help", "h", "start"], send_help)
-    unknown_handler = MessageHandler(Filters.command, unknown)
+    top_handler = MessageHandler(
+        Filters.text & (~Filters.command), send_top, run_async=True
+    )
+    info_handler = CommandHandler(["info", "i"], send_info, run_async=True)
+    help_handler = CommandHandler(["help", "h", "start"], send_help, run_async=True)
+    unknown_handler = MessageHandler(Filters.command, unknown, run_async=True)
 
     # add handlers to dispatcher
     dispatcher.add_handler(top_handler)
