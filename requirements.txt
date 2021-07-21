@@ -3,4 +3,4 @@ beautifulsoup4==4.9.3
 httpx==0.17.1
 lxml==4.6.3
 PySocks==1.7.1
-python-telegram-bot==12.8
+python-telegram-bot==13.7
