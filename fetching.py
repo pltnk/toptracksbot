@@ -17,8 +17,8 @@ import bs4
 import httpx
 
 
-LASTFM_API = os.getenv("LASTFM_API")
-YOUTUBE_API = os.getenv("YOUTUBE_API")
+LASTFM_API_KEY = os.getenv("TTBOT_LASTFM_API_KEY")
+YOUTUBE_API_KEY = os.getenv("TTBOT_YOUTUBE_API_KEY")
 YOUTUBE_REGEXP = re.compile("var ytInitialData = (?P<json>.+);</script>")
 
 logger = logging.getLogger("fetching")
@@ -36,7 +36,7 @@ async def get_playlist_api(keyphrase: str, number: int = 3) -> List[str]:
         res = await client.get(
             f"https://ws.audioscrobbler.com/2.0/"
             f"?method=artist.gettoptracks&artist={keyphrase}&limit={number}"
-            f"&autocorrect[1]&api_key={LASTFM_API}&format=json"
+            f"&autocorrect[1]&api_key={LASTFM_API_KEY}&format=json"
         )
     res.raise_for_status()
     parsed = json.loads(res.text)
@@ -83,7 +83,7 @@ async def fetch_ids_api(playlist: List[str]) -> List[str]:
             tasks.append(
                 client.get(
                     f"https://www.googleapis.com/youtube/v3/search"
-                    f"?part=snippet&maxResults=1&q={track}&key={YOUTUBE_API}"
+                    f"?part=snippet&maxResults=1&q={track}&key={YOUTUBE_API_KEY}"
                 )
             )
         result = await asyncio.gather(*tasks)
@@ -166,7 +166,7 @@ async def get_bio_api(keyphrase: str, name_only: bool = False) -> str:
     async with httpx.AsyncClient() as client:
         res = await client.get(
             f"https://ws.audioscrobbler.com/2.0/"
-            f"?method=artist.getinfo&artist={keyphrase}&autocorrect[1]&api_key={LASTFM_API}&format=json"
+            f"?method=artist.getinfo&artist={keyphrase}&autocorrect[1]&api_key={LASTFM_API_KEY}&format=json"
         )
     res.raise_for_status()
     parsed = json.loads(res.text)
@@ -222,7 +222,7 @@ async def get_corrected_name_api(keyphrase: str) -> str:
     async with httpx.AsyncClient() as client:
         res = await client.get(
             f"https://ws.audioscrobbler.com/2.0/"
-            f"?method=artist.getcorrection&artist={keyphrase}&api_key={LASTFM_API}&format=json"
+            f"?method=artist.getcorrection&artist={keyphrase}&api_key={LASTFM_API_KEY}&format=json"
         )
     res.raise_for_status()
     parsed = json.loads(res.text)

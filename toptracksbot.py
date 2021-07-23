@@ -18,10 +18,10 @@ import fetching
 import storing
 
 
-TOKEN = os.environ["BOT_TOKEN"]
-MODE = os.environ["BOT_MODE"]
-PORT = int(os.getenv("PORT", "8443"))
-HEROKU_APP = os.environ["HEROKU_APP"]
+BOT_TOKEN = os.environ["TTBOT_TOKEN"]
+MODE = os.environ["TTBOT_MODE"]
+PORT = int(os.getenv("TTBOT_PORT", "8443"))
+HEROKU_APP = os.environ["TTBOT_HEROKU_APP"]
 
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
@@ -107,7 +107,7 @@ def unknown(update: Update, context: CallbackContext) -> None:
 
 def main() -> None:
     # initialize updater
-    updater = Updater(token=TOKEN, use_context=True)
+    updater = Updater(token=BOT_TOKEN, use_context=True)
     # updater that uses proxy
     # REQUEST_KWARGS = {'proxy_url': 'http://195.189.96.213:3128'}
     # updater = Updater(token=TOKEN, use_context=True, request_kwargs=REQUEST_KWARGS)
@@ -130,8 +130,8 @@ def main() -> None:
     # start bot
     try:
         if MODE == "prod":
-            updater.start_webhook(listen="127.0.0.1", port=PORT, url_path=TOKEN)
-            updater.bot.set_webhook(f"https://{HEROKU_APP}.herokuapp.com/{TOKEN}")
+            updater.start_webhook(listen="127.0.0.1", port=PORT, url_path=BOT_TOKEN)
+            updater.bot.set_webhook(f"https://{HEROKU_APP}.herokuapp.com/{BOT_TOKEN}")
         else:
             logger.info("Starting bot")
             updater.start_polling()
