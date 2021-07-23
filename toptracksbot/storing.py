@@ -9,7 +9,6 @@ GitHub: https://github.com/pltnk/toptracksbot
 import json
 import logging
 import os
-import ssl
 from datetime import datetime
 from typing import List
 
@@ -20,21 +19,12 @@ import fetching
 
 DATABASE_URI = os.getenv(
     "TTBOT_DATABASE_URI",
-    f"postgres://{os.environ['TTBOT_DATABASE_USER']}:{os.environ['TTBOT_DATABASE_PASS']}@database:5432",
+    f"postgres://{os.environ['TTBOT_DATABASE_USER']}:{os.environ['TTBOT_DATABASE_PASS']}@db:5432/toptracksbot",
 )
-VALID_FOR_DAYS = os.getenv("TTBOT_VALID_FOR_DAYS", 30)
+VALID_FOR_DAYS = int(os.getenv("TTBOT_VALID_FOR_DAYS", 30))
 
 logger = logging.getLogger("storing")
 logger.setLevel(logging.DEBUG)
-
-
-async def connect_pg() -> asyncpg.connection.Connection:
-    """Connect PostrgeSQL database."""
-    ctx = ssl.create_default_context()
-    ctx.check_hostname = False
-    ctx.verify_mode = ssl.CERT_NONE
-    conn = await asyncpg.connect(dsn=DATABASE_URI, ssl=ctx)
-    return conn
 
 
 async def get_artist(keyphrase: str) -> str:
@@ -62,7 +52,7 @@ async def process(keyphrase: str) -> List[str]:
     """
     artist = await get_artist(keyphrase)
     today = datetime.now()
-    conn = await connect_pg()
+    conn = await asyncpg.connect(dsn=DATABASE_URI)
     record = await conn.fetch(f"SELECT * FROM top WHERE artist = '{artist}'")
     if (
         record
