@@ -108,9 +108,6 @@ def unknown(update: Update, context: CallbackContext) -> None:
 def main() -> None:
     # initialize updater
     updater = Updater(token=BOT_TOKEN, use_context=True)
-    # updater that uses proxy
-    # REQUEST_KWARGS = {'proxy_url': 'http://195.189.96.213:3128'}
-    # updater = Updater(token=TOKEN, use_context=True, request_kwargs=REQUEST_KWARGS)
     dispatcher = updater.dispatcher
 
     # initialize handlers
@@ -130,7 +127,9 @@ def main() -> None:
     # start bot
     try:
         if BOT_MODE == "prod":
-            updater.start_webhook(listen="127.0.0.1", port=WEBHOOK_PORT, url_path=BOT_TOKEN)
+            updater.start_webhook(
+                listen="127.0.0.1", port=WEBHOOK_PORT, url_path=BOT_TOKEN
+            )
             updater.bot.set_webhook(f"https://{HEROKU_APP}.herokuapp.com/{BOT_TOKEN}")
         else:
             logger.info("Starting bot")
