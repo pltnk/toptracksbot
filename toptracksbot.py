@@ -19,9 +19,9 @@ import storing
 
 
 BOT_TOKEN = os.environ["TTBOT_TOKEN"]
-MODE = os.environ["TTBOT_MODE"]
-PORT = int(os.getenv("TTBOT_PORT", "8443"))
-HEROKU_APP = os.environ["TTBOT_HEROKU_APP"]
+BOT_MODE = os.getenv("TTBOT_MODE", "dev")
+WEBHOOK_PORT = int(os.getenv("TTBOT_WEBHOOK_PORT", "8443"))
+HEROKU_APP = os.getenv("TTBOT_HEROKU_APP", "toptracksbot")
 
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
@@ -129,8 +129,8 @@ def main() -> None:
 
     # start bot
     try:
-        if MODE == "prod":
-            updater.start_webhook(listen="127.0.0.1", port=PORT, url_path=BOT_TOKEN)
+        if BOT_MODE == "prod":
+            updater.start_webhook(listen="127.0.0.1", port=WEBHOOK_PORT, url_path=BOT_TOKEN)
             updater.bot.set_webhook(f"https://{HEROKU_APP}.herokuapp.com/{BOT_TOKEN}")
         else:
             logger.info("Starting bot")

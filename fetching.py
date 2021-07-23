@@ -17,8 +17,8 @@ import bs4
 import httpx
 
 
-LASTFM_API_KEY = os.getenv("TTBOT_LASTFM_API_KEY")
-YOUTUBE_API_KEY = os.getenv("TTBOT_YOUTUBE_API_KEY")
+LASTFM_API_KEY = os.environ["TTBOT_LASTFM_API_KEY"]
+YOUTUBE_API_KEY = os.environ["TTBOT_YOUTUBE_API_KEY"]
 YOUTUBE_REGEXP = re.compile("var ytInitialData = (?P<json>.+);</script>")
 
 logger = logging.getLogger("fetching")

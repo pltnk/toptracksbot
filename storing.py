@@ -18,8 +18,11 @@ import asyncpg
 import fetching
 
 
-DATABASE_URI = os.environ["TTBOT_DATABASE_URI"]
-VALID_FOR_DAYS = 30
+DATABASE_URI = os.getenv(
+    "TTBOT_DATABASE_URI",
+    f"postgres://{os.environ['TTBOT_DATABASE_USER']}:{os.environ['TTBOT_DATABASE_PASS']}@database:5432",
+)
+VALID_FOR_DAYS = os.getenv("TTBOT_VALID_FOR_DAYS", 30)
 
 logger = logging.getLogger("storing")
 logger.setLevel(logging.DEBUG)
