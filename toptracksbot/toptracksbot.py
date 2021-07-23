@@ -21,7 +21,7 @@ import storing
 BOT_TOKEN = os.environ["TTBOT_TOKEN"]
 BOT_MODE = os.getenv("TTBOT_MODE", "dev")
 WEBHOOK_PORT = int(os.getenv("TTBOT_WEBHOOK_PORT", "8443"))
-HEROKU_APP = os.getenv("TTBOT_HEROKU_APP", "toptracksbot")
+HEROKU_APP = os.getenv("TTBOT_HEROKU_APP", "")
 
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
