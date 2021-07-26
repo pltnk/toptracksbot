@@ -5,14 +5,14 @@ services:
   db:
     build: ./db
     environment:
-      POSTGRES_USER: ${TTBOT_DATABASE_USER}
-      POSTGRES_PASSWORD: ${TTBOT_DATABASE_PASS}
+      POSTGRES_USER: ${TTBOT_DATABASE_USER:-toptracks}
+      POSTGRES_PASSWORD: ${TTBOT_DATABASE_PASS:-toptracks}
       POSTGRES_DB: toptracksbot
       PGDATA: /var/toptracksbot/data
     volumes:
       - ~/.toptracksbot/data:/var/toptracksbot/data
     ports:
-      - 5432:5432
+      - ${TTBOT_DATABASE_PORT:-5432}:5432
     restart: always
 
   bot:

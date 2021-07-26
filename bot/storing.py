@@ -19,7 +19,8 @@ import fetching
 
 DATABASE_URI = os.getenv(
     "TTBOT_DATABASE_URI",
-    f"postgres://{os.getenv('TTBOT_DATABASE_USER')}:{os.getenv('TTBOT_DATABASE_PASS')}@db:5432/toptracksbot",
+    f"postgres://{os.getenv('TTBOT_DATABASE_USER')}:{os.getenv('TTBOT_DATABASE_PASS')}"
+    f"@db:{os.getenv('TTBOT_DATABASE_PORT', '5432')}/toptracksbot",
 )
 VALID_FOR_DAYS = int(os.getenv("TTBOT_VALID_FOR_DAYS", 30))
 
