@@ -9,6 +9,15 @@ This bot fetches video from YouTube for the top three tracks of all time by spec
 
 The bot is deployed on Heroku and you can try it in Telegram: [@toptracksbot](http://t.me/toptracksbot)
 
+## Usage
+
+Just send an artist or a band name to the bot to get their top three tracks. \
+Available commands:
+- `/info artist_name` or `/i artist_name` - get a short bio of an artist
+- `/help` or `/h` - show help message
+
+https://user-images.githubusercontent.com/807774/126999133-1e5ccd79-fcbf-4038-8c8f-1003cc7e4770.mp4
+
 ## Deployment
 
 You can deploy this bot yourself using Docker and docker-compose.
