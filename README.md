@@ -9,6 +9,22 @@ This bot fetches video from YouTube for the top three tracks of all time by spec
 
 The bot is deployed on Heroku and you can try it in Telegram: [@toptracksbot](http://t.me/toptracksbot)
 
+## Deployment
+
+You can deploy this bot yourself using Docker and docker-compose.
+1. Install [Docker](https://docs.docker.com/get-docker/) and [docker-compose](https://docs.docker.com/compose/install/)
+2. Clone this repository
+3. Create `.env` file at the root of cloned repo with the following variables declared there:
+    - `TTBOT_TOKEN` - Auth token of your Telegram bot [(how to get)](https://core.telegram.org/bots#3-how-do-i-create-a-bot)
+    - `TTBOT_LASTFM_API_KEY` - Key for Last.fm API [(how to get)](https://www.last.fm/api)
+    - `TTBOT_YOUTUBE_API_KEY` - Key for YouTube API [(how to get)](https://developers.google.com/youtube/v3/getting-started)
+    - `TTBOT_DATABASE_USER` - Set a username for the database
+    - `TTBOT_DATABASE_PASS` - Set a password for the database 
+      
+    Check an [example of .env file](./.env_example)
+    
+4. Start the bot using command `docker-compose up -d` (this will build images for the database and the bot itself and start containers with them)
+
 ## Built With
 * [python-telegram-bot](https://github.com/python-telegram-bot/python-telegram-bot) - This library provides a pure Python interface for the Telegram Bot API.
 * [httpx](https://github.com/encode/httpx) - A next-generation HTTP client for Python.
