@@ -53,17 +53,17 @@ async def process(keyphrase: str) -> List[str]:
     artist = await get_artist(keyphrase)
     today = datetime.now()
     conn = await asyncpg.connect(dsn=DATABASE_URI)
-    record = await conn.fetch("SELECT * FROM top WHERE artist = $1", artist)
+    record = await conn.fetchrow("SELECT * FROM top WHERE artist = $1", artist)
     if (
         record
-        and (today - datetime.strptime(record[0]["date"], "%Y-%m-%d")).days
+        and (today - datetime.strptime(record["date"], "%Y-%m-%d")).days
         < VALID_FOR_DAYS
     ):
         logger.info(f"Found valid data for '{artist}' in the database")
         await conn.execute(
             "UPDATE top SET requests = requests + 1 WHERE artist = $1", artist
         )
-        tracks = json.loads(record[0]["tracks"])
+        tracks = json.loads(record["tracks"])
     else:
         logger.info(f"No valid data for '{artist}' in the database")
         tracks = await fetching.create_top(artist)
