@@ -53,7 +53,7 @@ async def process(keyphrase: str) -> List[str]:
     artist = await get_artist(keyphrase)
     today = datetime.now()
     conn = await asyncpg.connect(dsn=DATABASE_URI)
-    record = await conn.fetch(f"SELECT * FROM top WHERE artist = '{artist}'")
+    record = await conn.fetch("SELECT * FROM top WHERE artist = $1", artist)
     if (
         record
         and (today - datetime.strptime(record[0]["date"], "%Y-%m-%d")).days
@@ -61,7 +61,7 @@ async def process(keyphrase: str) -> List[str]:
     ):
         logger.info(f"Found valid data for '{artist}' in the database")
         await conn.execute(
-            f"UPDATE top SET requests = requests + 1 WHERE artist = '{artist}'"
+            "UPDATE top SET requests = requests + 1 WHERE artist = $1", artist
         )
         tracks = json.loads(record[0]["tracks"])
     else:
@@ -70,11 +70,11 @@ async def process(keyphrase: str) -> List[str]:
         if tracks:
             tracks_json = json.dumps(tracks)
             date = datetime.strftime(today, "%Y-%m-%d")
-            query = f"""INSERT INTO top (artist, tracks, date, requests)
-                        VALUES('{artist}', '{tracks_json}', '{date}', 1)
-                        ON CONFLICT (artist)
-                        DO UPDATE SET tracks = '{tracks_json}', date = '{date}', requests = top.requests + 1"""
-            await conn.execute(query)
+            query = """INSERT INTO top (artist, tracks, date, requests)
+                       VALUES($1, $2, $3, 1)
+                       ON CONFLICT (artist)
+                       DO UPDATE SET tracks = $2, date = $3, requests = top.requests + 1"""
+            await conn.execute(query, artist, tracks_json, date)
             logger.info(f"Database is updated with new data for '{artist}'")
     await conn.close()
     return tracks
