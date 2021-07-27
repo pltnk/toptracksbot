@@ -252,6 +252,7 @@ async def get_name(keyphrase: str) -> str:
                 f"An error occurred while fetching artist name via Last.fm API: {e}. Proceeding without API."
             )
             name = await get_bio(keyphrase, name_only=True)
+    logger.debug(f"Got corrected name '{name}' for keyphrase '{keyphrase}'")
     return name
 
 
