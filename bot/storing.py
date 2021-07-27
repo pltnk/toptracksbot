@@ -51,14 +51,10 @@ async def process(keyphrase: str) -> List[str]:
     :return: List of YouTube IDs.
     """
     artist = await get_artist(keyphrase)
-    today = datetime.now()
+    today = datetime.now().date()
     conn = await asyncpg.connect(dsn=DATABASE_URI)
     record = await conn.fetchrow("SELECT * FROM top WHERE artist = $1", artist)
-    if (
-        record
-        and (today - datetime.strptime(record["date"], "%Y-%m-%d")).days
-        < VALID_FOR_DAYS
-    ):
+    if record and (today - record["date"]).days < VALID_FOR_DAYS:
         logger.info(f"Found valid data for '{artist}' in the database")
         await conn.execute(
             "UPDATE top SET requests = requests + 1 WHERE artist = $1", artist
@@ -69,12 +65,11 @@ async def process(keyphrase: str) -> List[str]:
         tracks = await fetching.create_top(artist)
         if tracks:
             tracks_json = json.dumps(tracks)
-            date = datetime.strftime(today, "%Y-%m-%d")
             query = """INSERT INTO top (artist, tracks, date, requests)
                        VALUES($1, $2, $3, 1)
                        ON CONFLICT (artist)
                        DO UPDATE SET tracks = $2, date = $3, requests = top.requests + 1"""
-            await conn.execute(query, artist, tracks_json, date)
+            await conn.execute(query, artist, tracks_json, today)
             logger.info(f"Database is updated with new data for '{artist}'")
     await conn.close()
     return tracks
