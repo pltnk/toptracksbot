@@ -19,7 +19,7 @@ import httpx
 
 LASTFM_API_KEY = os.environ["TTBOT_LASTFM_API_KEY"]
 YOUTUBE_API_KEY = os.environ["TTBOT_YOUTUBE_API_KEY"]
-YOUTUBE_REGEXP = re.compile("var ytInitialData = (?P<json>.+);</script>")
+YOUTUBE_REGEXP = re.compile("var ytInitialData = (?P<json>{.+});<")
 
 logger = logging.getLogger("fetching")
 logger.setLevel(logging.DEBUG)
