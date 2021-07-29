@@ -1,0 +1,13 @@
+os: linux
+dist: focal
+language: shell
+
+jobs:
+  include:
+    - stage: Run tests
+      script:
+        - cd $TRAVIS_REPO_SLUG
+        - sed -i "s#TTBOT_LASTFM_API_KEY=.*#TTBOT_LASTFM_API_KEY=$TTBOT_LASTFM_API_KEY#" .env_example
+        - sed -i "s#TTBOT_YOUTUBE_API_KEY=.*#TTBOT_YOUTUBE_API_KEY=$TTBOT_YOUTUBE_API_KEY#" .env_example
+        - mv .env_example .env
+        - docker-compose run --rm tests
