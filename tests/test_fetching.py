@@ -1,3 +1,5 @@
+import json
+
 import pytest
 
 from bot import fetching
@@ -43,13 +45,8 @@ async def test_fetch_ids(func):
     assert isinstance(res, list)
     assert len(res) == len(PLAYLIST)
     assert all(isinstance(i, str) for i in res)
+    json.dumps(res)
     assert res == YT_IDS
-
-
-async def test_ids_equality():
-    res1 = await fetching.fetch_ids_api(PLAYLIST)
-    res2 = await fetching.fetch_ids(PLAYLIST)
-    assert res1 == res2
 
 
 async def test_create_top():
@@ -58,6 +55,7 @@ async def test_create_top():
         assert isinstance(res, list)
         assert len(res) == n
         assert all(isinstance(i, str) for i in res)
+        json.dumps(res)
 
 
 @pytest.mark.parametrize(
