@@ -7,4 +7,4 @@ RUN pip install --no-cache-dir --ignore-installed -r /opt/toptracksbot/bot/requi
 COPY ./tests/requirements.txt /opt/toptracksbot/tests/requirements.txt
 RUN pip install --no-cache-dir --ignore-installed -r /opt/toptracksbot/tests/requirements.txt
 COPY . /opt/toptracksbot
-CMD python3 ./bot/wait_for_db.py && pytest ./tests/test_storing.py -v
+CMD python3 ./bot/wait_for_db.py && pytest ./tests -v
