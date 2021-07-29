@@ -13,9 +13,10 @@ before_install:
 
 jobs:
   include:
-    - stage: Run tests
+    - stage: Run tests with coverage
       script:
         - sed -i "s#TTBOT_LASTFM_API_KEY=.*#TTBOT_LASTFM_API_KEY=${TTBOT_LASTFM_API_KEY}#" .env_example
         - sed -i "s#TTBOT_YOUTUBE_API_KEY=.*#TTBOT_YOUTUBE_API_KEY=${TTBOT_YOUTUBE_API_KEY}#" .env_example
         - mv .env_example .env
-        - docker-compose run --rm tests
+        - echo "pytest-cov" >> ./tests/requirements.txt
+        - docker-compose run --rm -e CODECOV_TOKEN=${CODECOV_TOKEN} tests python3 ./bot/wait_for_db.py && pytest --cov=./ ./tests -v
