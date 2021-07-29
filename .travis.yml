@@ -2,12 +2,20 @@ os: linux
 dist: focal
 language: shell
 
+env:
+  - DOCKER_COMPOSE_VERSION=1.29.2
+
+before_install:
+  - sudo rm /usr/local/bin/docker-compose
+  - curl -L https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-`uname -s`-`uname -m` > docker-compose
+  - chmod +x docker-compose
+  - sudo mv docker-compose /usr/local/bin
+
 jobs:
   include:
     - stage: Run tests
       script:
-        - cd $TRAVIS_REPO_SLUG
-        - sed -i "s#TTBOT_LASTFM_API_KEY=.*#TTBOT_LASTFM_API_KEY=$TTBOT_LASTFM_API_KEY#" .env_example
-        - sed -i "s#TTBOT_YOUTUBE_API_KEY=.*#TTBOT_YOUTUBE_API_KEY=$TTBOT_YOUTUBE_API_KEY#" .env_example
+        - sed -i "s#TTBOT_LASTFM_API_KEY=.*#TTBOT_LASTFM_API_KEY=${TTBOT_LASTFM_API_KEY}#" .env_example
+        - sed -i "s#TTBOT_YOUTUBE_API_KEY=.*#TTBOT_YOUTUBE_API_KEY=${TTBOT_YOUTUBE_API_KEY}#" .env_example
         - mv .env_example .env
         - docker-compose run --rm tests
