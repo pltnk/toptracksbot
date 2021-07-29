@@ -88,12 +88,12 @@ async def fetch_ids_api(playlist: List[str]) -> List[str]:
             )
         result = await asyncio.gather(*tasks)
     for counter, res in enumerate(result):
-        if res.status_code == 200:
-            parsed = json.loads(res.text)
-            video_id = parsed["items"][0]["id"]["videoId"]
-            if video_id:
-                logger.info(f"Adding YouTube id for: {playlist[counter]}")
-                ids.append(video_id)
+        res.raise_for_status()
+        parsed = json.loads(res.text)
+        video_id = parsed["items"][0]["id"]["videoId"]
+        if video_id:
+            logger.info(f"Adding YouTube id for: {playlist[counter]}")
+            ids.append(video_id)
     return ids
 
 

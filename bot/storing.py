@@ -14,7 +14,7 @@ from typing import List
 
 import asyncpg
 
-import fetching
+from bot import fetching
 
 
 DATABASE_URI = os.getenv(
