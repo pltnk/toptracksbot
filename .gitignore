@@ -2,6 +2,7 @@
 api_keys.txt
 Procfile.windows
 drafts.py
+.pytest_cache/
 /.idea/
 /__pycache__/
 /.mypy_cache/
