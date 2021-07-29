@@ -3,7 +3,7 @@ import pytest
 from bot import fetching
 
 
-NUMBERS = (0, 1, 3, 5)
+NUMBERS = (0, 1, 3)
 KEYPHRASE = "Nirvana"
 PLAYLIST = [
     "Nirvana - Smells Like Teen Spirit",
