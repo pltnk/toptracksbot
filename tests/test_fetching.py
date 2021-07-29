@@ -20,6 +20,7 @@ PLAYLIST = [
     "Nirvana - Come As You Are",
     "Nirvana - Lithium",
 ]
+YT_IDS = ["hTWKbfoikeg", "vabnZ9-ex7o", "pkcJEvMcnEg"]
 CORRECTIONS = {
     "norvana": "Nirvana",
     "slipnot": "Slipknot",
@@ -39,12 +40,26 @@ async def test_get_playlist(func):
         assert all(i.startswith(f"{KEYPHRASE} - ") for i in res)
 
 
+async def test_playlist_equality():
+    for n in NUMBERS:
+        res1 = await fetching.get_playlist_api(KEYPHRASE, n)
+        res2 = await fetching.get_playlist(KEYPHRASE, n)
+        assert res1 == res2
+
+
 @pytest.mark.parametrize("func", [fetching.fetch_ids_api, fetching.fetch_ids])
 async def test_fetch_ids(func):
     res = await func(PLAYLIST)
     assert isinstance(res, list)
     assert len(res) == len(PLAYLIST)
     assert all(isinstance(i, str) for i in res)
+    assert res == YT_IDS
+
+
+async def test_ids_equality():
+    res1 = await fetching.fetch_ids_api(PLAYLIST)
+    res2 = await fetching.fetch_ids(PLAYLIST)
+    assert res1 == res2
 
 
 async def test_create_top():
