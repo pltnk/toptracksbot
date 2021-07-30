@@ -18,6 +18,5 @@ jobs:
         - sed -i "s#TTBOT_LASTFM_API_KEY=.*#TTBOT_LASTFM_API_KEY=${TTBOT_LASTFM_API_KEY}#" .env_example
         - sed -i "s#TTBOT_YOUTUBE_API_KEY=.*#TTBOT_YOUTUBE_API_KEY=${TTBOT_YOUTUBE_API_KEY}#" .env_example
         - mv .env_example .env
-        - ci_env=`bash <(curl -s https://codecov.io/env)`
         - echo "pytest-cov" >> ./tests/requirements.txt
-        - docker-compose run --rm -e CODECOV_TOKEN=${CODECOV_TOKEN} -e CI=true tests $ci_env && python3 ./bot/wait_for_db.py && pytest --cov=./ -v
+        - docker-compose run --rm -e CODECOV_TOKEN=${CODECOV_TOKEN} -e CI=true tests bash <(curl -s https://codecov.io/env) && python3 ./bot/wait_for_db.py && pytest --cov=./ -v
