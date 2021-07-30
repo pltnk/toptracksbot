@@ -19,5 +19,4 @@ jobs:
         - sed -i "s#TTBOT_YOUTUBE_API_KEY=.*#TTBOT_YOUTUBE_API_KEY=${TTBOT_YOUTUBE_API_KEY}#" .env_example
         - mv .env_example .env
         - ci_env=`bash <(curl -s https://codecov.io/env)`
-        - echo "pytest-cov" >> ./tests/requirements.txt
-        - docker-compose run --rm $ci_env -e CI=true tests python3 ./bot/wait_for_db.py && python3 -m pytest --cov=./ -v
+        - docker-compose run --rm $ci_env -e CI=true tests
