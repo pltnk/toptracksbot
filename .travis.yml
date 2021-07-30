@@ -18,5 +18,7 @@ jobs:
         - sed -i "s#TTBOT_LASTFM_API_KEY=.*#TTBOT_LASTFM_API_KEY=${TTBOT_LASTFM_API_KEY}#" .env_example
         - sed -i "s#TTBOT_YOUTUBE_API_KEY=.*#TTBOT_YOUTUBE_API_KEY=${TTBOT_YOUTUBE_API_KEY}#" .env_example
         - mv .env_example .env
+        - echo "codecov" >> ./tests/requirements.txt
+        - sed -i '$s#$# \&\& codecov#' ./tests/Dockerfile
         - ci_env=`bash <(curl -s https://codecov.io/env)`
         - docker-compose run --rm $ci_env -e CI=true tests
