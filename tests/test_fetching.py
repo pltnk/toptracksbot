@@ -35,7 +35,7 @@ async def test_get_playlist(func):
         await func(BAD_KEYPHRASE)
 
 
-async def test_playlist_equality():
+async def test_playlists_equality():
     for n in NUMBERS:
         res1 = await fetching.get_playlist_api(KEYPHRASE, n)
         res2 = await fetching.get_playlist(KEYPHRASE, n)
