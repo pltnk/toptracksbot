@@ -20,4 +20,4 @@ jobs:
         - mv .env_example .env
         - ci_env=`bash <(curl -s https://codecov.io/env)`
         - echo "pytest-cov" >> ./tests/requirements.txt
-        - docker-compose run --rm $ci_env -e CODECOV_TOKEN=${CODECOV_TOKEN} -e CI=true tests python3 ./bot/wait_for_db.py && pytest --cov=./ -v
+        - docker-compose run --rm -e $ci_env tests python3 ./bot/wait_for_db.py && pytest --cov=./ -v
