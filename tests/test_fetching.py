@@ -39,7 +39,18 @@ async def test_playlist_equality():
         assert res1 == res2
 
 
-@pytest.mark.parametrize("func", [fetching.fetch_ids_api, fetching.fetch_ids])
+@pytest.mark.parametrize(
+    "func",
+    [
+        pytest.param(
+            fetching.fetch_ids_api,
+            marks=pytest.mark.xfail(
+                reason="YouTube API quota has reached the limit", raises=ResourceWarning
+            ),
+        ),
+        fetching.fetch_ids,
+    ],
+)
 async def test_fetch_ids(func):
     res = await func(PLAYLIST)
     assert isinstance(res, list)
