@@ -7,6 +7,7 @@ from bot import fetching
 
 NUMBERS = (0, 1, 3)
 KEYPHRASE = "Nirvana"
+BAD_KEYPHRASE = "random text that is no way a band name"
 PLAYLIST = [
     "Nirvana - Smells Like Teen Spirit",
     "Nirvana - Come As You Are",
@@ -30,6 +31,8 @@ async def test_get_playlist(func):
         assert len(res) == n
         assert all(isinstance(i, str) for i in res)
         assert all(i.startswith(f"{KEYPHRASE} - ") for i in res)
+    with pytest.raises(Exception):
+        await func(BAD_KEYPHRASE)
 
 
 async def test_playlist_equality():
@@ -67,6 +70,8 @@ async def test_create_top():
         assert len(res) == n
         assert all(isinstance(i, str) for i in res)
         json.dumps(res)
+    with pytest.raises(Exception):
+        await fetching.create_top(BAD_KEYPHRASE)
 
 
 @pytest.mark.parametrize(
@@ -83,6 +88,8 @@ async def test_get_bio(func, sections):
     res = await func(KEYPHRASE)
     assert isinstance(res, str)
     assert all(s in res for s in sections)
+    with pytest.raises(Exception):
+        await func(BAD_KEYPHRASE)
 
 
 @pytest.mark.parametrize("func", [fetching.get_corrected_name_api, fetching.get_name])
@@ -92,7 +99,7 @@ async def test_get_name(func):
         assert isinstance(res, str)
         assert res == CORRECTIONS[key]
     with pytest.raises(Exception):
-        await func("random text that is no way a band name")
+        await func(BAD_KEYPHRASE)
 
 
 async def test_get_info():
@@ -100,3 +107,5 @@ async def test_get_info():
     assert isinstance(res, str)
     sections = ("Similar:", "Read more:")
     assert all(s in res for s in sections)
+    with pytest.raises(Exception):
+        await fetching.get_info(BAD_KEYPHRASE)
