@@ -74,70 +74,63 @@ async def get_playlist(keyphrase: str, number: int = 3) -> List[str]:
     return playlist
 
 
-async def fetch_ids_api(playlist: List[str]) -> List[str]:
-    """
-    Create a list containing a YouTube ID for an each track
-    in the given playlist using YouTube API.
-    :param playlist: List of tracks formatted as '<artist> - <track>'.
-    :return: List of YouTube IDs.
-    """
-    ids = []
+async def get_yt_id_api(track: str) -> str:
     async with httpx.AsyncClient() as client:
-        tasks = []
-        for track in playlist:
-            tasks.append(
-                client.get(
-                    f"https://www.googleapis.com/youtube/v3/search"
-                    f"?part=snippet&maxResults=1&q={_quote(track)}&key={YOUTUBE_API_KEY}"
-                )
-            )
-        result = await asyncio.gather(*tasks)
-    for counter, res in enumerate(result):
-        if res.status_code == 403:
-            raise ResourceWarning("YouTube API quota has reached the limit")
-        res.raise_for_status()
-        parsed = json.loads(res.text)
-        video_id = parsed["items"][0]["id"]["videoId"]
-        if video_id:
-            logger.info(f"Adding YouTube id for: {playlist[counter]}")
-            ids.append(video_id)
-    return ids
+        res = await client.get(
+            f"https://www.googleapis.com/youtube/v3/search"
+            f"?part=snippet&maxResults=1&q={_quote(track)}&key={YOUTUBE_API_KEY}"
+        )
+    if res.status_code == 403:
+        raise ResourceWarning("YouTube API quota has reached the limit")
+    res.raise_for_status()
+    parsed = json.loads(res.text)
+    video_id = parsed["items"][0]["id"]["videoId"]
+    return video_id
 
 
-async def fetch_ids(playlist: List[str]) -> List[str]:
-    """
-    Create a list containing a YouTube ID for an each track
-    in the given playlist **without** using YouTube API.
-    :param playlist: List of tracks formatted as '<artist> - <track>'.
-    :return: List of YouTube IDs.
-    """
-    ids = []
+async def get_yt_id_noapi(track: str) -> str:
     async with httpx.AsyncClient() as client:
-        tasks = []
-        for track in playlist:
-            tasks.append(
-                client.get(
-                    f"https://www.youtube.com/results?search_query={_quote(track)}"
-                )
+        res = await client.get(
+            f"https://www.youtube.com/results?search_query={_quote(track)}"
+        )
+    res.raise_for_status()
+    match = YOUTUBE_REGEXP.search(res.text)
+    data = json.loads(match.group("json"))
+    # fmt:off
+    slr = data["contents"]["twoColumnSearchResultsRenderer"]["primaryContents"]["sectionListRenderer"]
+    video_id = slr["contents"][0]["itemSectionRenderer"]["contents"][0]["videoRenderer"]["videoId"]
+    # fmt:on
+    return video_id
+
+
+async def get_yt_id(track: str) -> str:
+    try:
+        yt_id = await get_yt_id_api(track)
+    except Exception as e:
+        logger.warning(
+            f"Unable to get YouTube ID for '{track}' via API: {repr(e)}. Proceeding without API."
+        )
+        try:
+            yt_id = await get_yt_id_noapi(track)
+        except Exception as e:
+            logger.error(
+                f"Unable to get YouTube ID for '{track}' *without* API: {repr(e)}"
             )
-        result = await asyncio.gather(*tasks)
-    for counter, res in enumerate(result):
-        if isinstance(res, httpx.Response) and res.status_code == 200:
-            try:
-                match = YOUTUBE_REGEXP.search(res.text)
-                data = json.loads(match.group("json"))
-                # fmt:off
-                slr = data["contents"]["twoColumnSearchResultsRenderer"]["primaryContents"]["sectionListRenderer"]
-                yt_id = slr["contents"][0]["itemSectionRenderer"]["contents"][0]["videoRenderer"]["videoId"]
-                # fmt:on
-            except Exception as e:
-                logger.exception(
-                    f"Unable to fetch YouTube ID *without* API for {playlist[counter]}: {e}"
-                )
-            else:
-                logger.debug(f"Adding YouTube id for: {playlist[counter]}")
-                ids.append(yt_id)
-    return ids
+            raise e
+    return yt_id
+
+
+async def get_yt_ids(playlist: List[str]) -> List[str]:
+    """
+    Create a list containing a YouTube ID for each track
+    in the given playlist.
+    :param playlist: List of tracks formatted as '<artist> - <track>'.
+    :return: List of corresponding YouTube IDs.
+    """
+    tasks = [get_yt_id(track) for track in playlist]
+    result = await asyncio.gather(*tasks, return_exceptions=True)
+    yt_ids = [i for i in result if isinstance(i, str)]
+    return yt_ids
 
 
 async def create_top(keyphrase: str, number: int = 3) -> List[str]:
@@ -156,13 +149,8 @@ async def create_top(keyphrase: str, number: int = 3) -> List[str]:
         )
         logger.info("Creating playlist without API")
         playlist = await get_playlist(keyphrase, number)
-    try:
-        ids = await fetch_ids_api(playlist)
-    except Exception as e:
-        logger.warning(f"An error occurred while fetching YouTube ids via API: {e}")
-        logger.info("Fetching YouTube ids without API")
-        ids = await fetch_ids(playlist)
-    return ids
+    yt_ids = await get_yt_ids(playlist)
+    return yt_ids
 
 
 async def get_bio_api(keyphrase: str, name_only: bool = False) -> str:
