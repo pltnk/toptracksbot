@@ -11,7 +11,9 @@ import json
 import logging
 import os
 import re
+from functools import partial
 from typing import List
+from urllib.parse import quote
 
 import bs4
 import httpx
@@ -25,6 +27,9 @@ logger = logging.getLogger("fetching")
 logger.setLevel(logging.DEBUG)
 
 
+_quote = partial(quote, safe="")
+
+
 async def get_playlist_api(keyphrase: str, number: int = 3) -> List[str]:
     """
     Create a list of top tracks by the given artist using Last.fm API.
@@ -35,7 +40,7 @@ async def get_playlist_api(keyphrase: str, number: int = 3) -> List[str]:
     async with httpx.AsyncClient() as client:
         res = await client.get(
             f"https://ws.audioscrobbler.com/2.0/"
-            f"?method=artist.gettoptracks&artist={keyphrase}&limit={number}"
+            f"?method=artist.gettoptracks&artist={_quote(keyphrase)}&limit={number}"
             f"&autocorrect[1]&api_key={LASTFM_API_KEY}&format=json"
         )
     res.raise_for_status()
@@ -57,7 +62,7 @@ async def get_playlist(keyphrase: str, number: int = 3) -> List[str]:
     """
     async with httpx.AsyncClient() as client:
         res = await client.get(
-            f"https://www.last.fm/music/{keyphrase}/+tracks?date_preset=ALL"
+            f"https://www.last.fm/music/{_quote(keyphrase)}/+tracks?date_preset=ALL"
         )
     res.raise_for_status()
     soup = bs4.BeautifulSoup(res.content, "lxml")
@@ -83,7 +88,7 @@ async def fetch_ids_api(playlist: List[str]) -> List[str]:
             tasks.append(
                 client.get(
                     f"https://www.googleapis.com/youtube/v3/search"
-                    f"?part=snippet&maxResults=1&q={track}&key={YOUTUBE_API_KEY}"
+                    f"?part=snippet&maxResults=1&q={_quote(track)}&key={YOUTUBE_API_KEY}"
                 )
             )
         result = await asyncio.gather(*tasks)
@@ -111,7 +116,9 @@ async def fetch_ids(playlist: List[str]) -> List[str]:
         tasks = []
         for track in playlist:
             tasks.append(
-                client.get(f"https://www.youtube.com/results?search_query={track}")
+                client.get(
+                    f"https://www.youtube.com/results?search_query={_quote(track)}"
+                )
             )
         result = await asyncio.gather(*tasks)
     for counter, res in enumerate(result):
@@ -168,7 +175,8 @@ async def get_bio_api(keyphrase: str, name_only: bool = False) -> str:
     async with httpx.AsyncClient() as client:
         res = await client.get(
             f"https://ws.audioscrobbler.com/2.0/"
-            f"?method=artist.getinfo&artist={keyphrase}&autocorrect[1]&api_key={LASTFM_API_KEY}&format=json"
+            f"?method=artist.getinfo&artist={_quote(keyphrase)}&autocorrect[1]"
+            f"&api_key={LASTFM_API_KEY}&format=json"
         )
     res.raise_for_status()
     parsed = json.loads(res.text)
@@ -195,7 +203,7 @@ async def get_bio(keyphrase: str, name_only: bool = False) -> str:
     :return: Either just a name of an artist or their short bio.
     """
     async with httpx.AsyncClient() as client:
-        res = await client.get(f"https://www.last.fm/music/{keyphrase}/+wiki")
+        res = await client.get(f"https://www.last.fm/music/{_quote(keyphrase)}/+wiki")
     res.raise_for_status()
     soup = bs4.BeautifulSoup(res.content, "lxml")
     name = soup.find("h1", attrs={"class": "header-new-title"}).text.strip()
@@ -224,7 +232,8 @@ async def get_corrected_name_api(keyphrase: str) -> str:
     async with httpx.AsyncClient() as client:
         res = await client.get(
             f"https://ws.audioscrobbler.com/2.0/"
-            f"?method=artist.getcorrection&artist={keyphrase}&api_key={LASTFM_API_KEY}&format=json"
+            f"?method=artist.getcorrection&artist={_quote(keyphrase)}"
+            f"&api_key={LASTFM_API_KEY}&format=json"
         )
     res.raise_for_status()
     parsed = json.loads(res.text)
