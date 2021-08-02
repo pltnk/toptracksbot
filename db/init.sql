@@ -1,4 +1,6 @@
-CREATE TABLE IF NOT EXISTS top
+DROP TABLE IF EXISTS top;
+
+CREATE TABLE top
 (
     id SERIAL,
     artist text NOT NULL,

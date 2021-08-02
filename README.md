@@ -1,7 +1,9 @@
 # Top Tracks Bot for Telegram
 [![Telegram](https://img.shields.io/badge/telegram-%40toptracksbot-informational)](http://t.me/toptracksbot)
 [![Python Version](https://img.shields.io/badge/python-3.7%2B-blue)](https://www.python.org/downloads/)
+[![Travis CI](https://img.shields.io/travis/com/pltnk/toptracksbot)](https://www.travis-ci.com/github/pltnk/toptracksbot)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/cae4d1afa23240e1a7ca996f7b0d92b8)](https://www.codacy.com/manual/pltnk/toptracksbot?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=pltnk/toptracksbot&amp;utm_campaign=Badge_Grade)
+[![codecov](https://codecov.io/gh/pltnk/toptracksbot/branch/tests/graph/badge.svg?token=8K09IYN9SR)](https://codecov.io/gh/pltnk/toptracksbot)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![License](https://img.shields.io/github/license/pltnk/top_tracks)](https://choosealicense.com/licenses/mit/)
 
@@ -14,6 +16,7 @@ The bot is deployed on Heroku and you can try it in Telegram: [@toptracksbot](ht
 Just send an artist or a band name to the bot to get their top three tracks.
 
 #### Available commands
+
 - `/info artist_name` or `/i artist_name` - get a short bio of an artist
 - `/help` or `/h` - show help message
 
@@ -40,8 +43,8 @@ You can deploy this bot yourself using Docker and docker-compose.
    - `TTBOT_VALID_FOR_DAYS` - Number of days for which information about the artist's top three tracks is cached in the database (default `30`)
     
    Check an [example of `.env` file](./.env_example).
-    
-4. Start the bot using command `docker-compose up -d` (this will build images for the bot, database and start containers with them)
+4. Run tests using command `docker-compose run --rm tests || sleep 5 && docker-compose rm -s -f test_db && docker image rm -f toptracksbot_test_db toptracksbot_tests` (this will run tests in a container and remove test containers and images after)
+5. Start the bot using command `docker-compose up -d` (this will build images for the bot, database and start containers with them)
 
 ## Built With
 * [python-telegram-bot](https://github.com/python-telegram-bot/python-telegram-bot) - This library provides a pure Python interface for the Telegram Bot API.

@@ -31,3 +31,21 @@ services:
       options:
         max-size: "1m"
         max-file: "5"
+
+  test_db:
+    image: postgres:13
+    environment:
+      POSTGRES_USER: ${TTBOT_DATABASE_USER:-toptracks}
+      POSTGRES_PASSWORD: ${TTBOT_DATABASE_PASS:-toptracks}
+      POSTGRES_DB: toptracksbot
+      PGDATA: /var/toptracksbot/data
+
+  tests:
+    build:
+      context: .
+      dockerfile: ./tests/Dockerfile
+    environment:
+      TTBOT_DATABASE_URI: postgres://${TTBOT_DATABASE_USER:-toptracks}:${TTBOT_DATABASE_PASS:-toptracks}@test_db/toptracksbot
+    env_file: .env
+    depends_on:
+      - test_db

@@ -14,8 +14,7 @@ from telegram import ChatAction, Update
 from telegram.ext import CallbackContext, CommandHandler, MessageHandler, Updater
 from telegram.ext.filters import Filters
 
-import fetching
-import storing
+from bot import fetching, storing
 
 
 BOT_TOKEN = os.environ["TTBOT_TOKEN"]
