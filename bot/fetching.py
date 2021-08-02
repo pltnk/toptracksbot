@@ -75,6 +75,13 @@ async def get_playlist(keyphrase: str, number: int = 3) -> List[str]:
 
 
 async def get_yt_id_api(track: str) -> str:
+    """
+    Get YouTube video ID for a track using YouTube API.
+    :param track: Track title formatted as '<artist> - <track>'.
+    :return: Corresponding YouTube video ID.
+    :raise ResourceWarning: if API quota hit the limit.
+    :raise Exception: if unable to get ID via API.
+    """
     async with httpx.AsyncClient() as client:
         res = await client.get(
             f"https://www.googleapis.com/youtube/v3/search"
@@ -89,6 +96,12 @@ async def get_yt_id_api(track: str) -> str:
 
 
 async def get_yt_id_noapi(track: str) -> str:
+    """
+    Get YouTube video ID for a track *without* using YouTube API.
+    :param track: Track title formatted as '<artist> - <track>'.
+    :return: Corresponding YouTube video ID.
+    :raise Exception: if unable to get ID without API.
+    """
     async with httpx.AsyncClient() as client:
         res = await client.get(
             f"https://www.youtube.com/results?search_query={_quote(track)}"
@@ -104,6 +117,12 @@ async def get_yt_id_noapi(track: str) -> str:
 
 
 async def get_yt_id(track: str) -> str:
+    """
+    Get YouTube video ID for a track.
+    :param track: Track title formatted as '<artist> - <track>'.
+    :return: Corresponding YouTube video ID.
+    :raise Exception: if unable to get ID neither via API nor without it.
+    """
     try:
         yt_id = await get_yt_id_api(track)
     except Exception as e:
