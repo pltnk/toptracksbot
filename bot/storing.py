@@ -9,7 +9,6 @@ GitHub: https://github.com/pltnk/toptracksbot
 import json
 import logging
 import os
-import ssl
 from datetime import datetime
 from typing import List
 
@@ -18,20 +17,14 @@ import asyncpg
 import fetching
 
 
-DATABASE_URI = os.environ["DATABASE_URI"]
-VALID_FOR_DAYS = 30
+DATABASE_URI = os.getenv(
+    "TTBOT_DATABASE_URI",
+    f"postgres://{os.getenv('TTBOT_DATABASE_USER')}:{os.getenv('TTBOT_DATABASE_PASS')}@db/toptracksbot",
+)
+VALID_FOR_DAYS = int(os.getenv("TTBOT_VALID_FOR_DAYS", 30))
 
 logger = logging.getLogger("storing")
 logger.setLevel(logging.DEBUG)
-
-
-async def connect_pg() -> asyncpg.connection.Connection:
-    """Connect PostrgeSQL database."""
-    ctx = ssl.create_default_context()
-    ctx.check_hostname = False
-    ctx.verify_mode = ssl.CERT_NONE
-    conn = await asyncpg.connect(dsn=DATABASE_URI, ssl=ctx)
-    return conn
 
 
 async def get_artist(keyphrase: str) -> str:
@@ -58,30 +51,25 @@ async def process(keyphrase: str) -> List[str]:
     :return: List of YouTube IDs.
     """
     artist = await get_artist(keyphrase)
-    today = datetime.now()
-    conn = await connect_pg()
-    record = await conn.fetch(f"SELECT * FROM top WHERE artist = '{artist}'")
-    if (
-        record
-        and (today - datetime.strptime(record[0]["date"], "%Y-%m-%d")).days
-        < VALID_FOR_DAYS
-    ):
+    today = datetime.now().date()
+    conn = await asyncpg.connect(dsn=DATABASE_URI)
+    record = await conn.fetchrow(
+        "UPDATE top SET requests = requests + 1 WHERE artist = $1 RETURNING tracks, date",
+        artist,
+    )
+    if record and (today - record["date"]).days < VALID_FOR_DAYS:
         logger.info(f"Found valid data for '{artist}' in the database")
-        await conn.execute(
-            f"UPDATE top SET requests = requests + 1 WHERE artist = '{artist}'"
-        )
-        tracks = json.loads(record[0]["tracks"])
+        tracks = json.loads(record["tracks"])
     else:
         logger.info(f"No valid data for '{artist}' in the database")
         tracks = await fetching.create_top(artist)
         if tracks:
             tracks_json = json.dumps(tracks)
-            date = datetime.strftime(today, "%Y-%m-%d")
-            query = f"""INSERT INTO top (artist, tracks, date, requests)
-                        VALUES('{artist}', '{tracks_json}', '{date}', 1)
-                        ON CONFLICT (artist)
-                        DO UPDATE SET tracks = '{tracks_json}', date = '{date}', requests = top.requests + 1"""
-            await conn.execute(query)
+            query = """INSERT INTO top (artist, tracks, date, requests)
+                       VALUES($1, $2, $3, 1)
+                       ON CONFLICT (artist)
+                       DO UPDATE SET tracks = $2, date = $3"""
+            await conn.execute(query, artist, tracks_json, today)
             logger.info(f"Database is updated with new data for '{artist}'")
     await conn.close()
     return tracks

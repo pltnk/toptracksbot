@@ -1,1 +1,1 @@
-worker: python3 toptracksbot.py $PORT
+worker: python3 bot/bot.py $PORT
