@@ -14,7 +14,7 @@ DATABASE_URI = os.environ["TTBOT_DATABASE_URI"]
     "db_uri, retries, timeout",
     [
         (DATABASE_URI, wait_for_db.RETRIES, wait_for_db.TIMEOUT),
-        ("invalid URI", wait_for_db.RETRIES, wait_for_db.TIMEOUT),
+        ("invalid URI", 3, 1),
     ],
 )
 async def test_ping_db(db_uri: str, retries: int, timeout: int):
