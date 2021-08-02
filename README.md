@@ -3,7 +3,7 @@
 [![Python Version](https://img.shields.io/badge/python-3.7%2B-blue)](https://www.python.org/downloads/)
 [![Travis CI](https://img.shields.io/travis/com/pltnk/toptracksbot)](https://www.travis-ci.com/github/pltnk/toptracksbot)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/cae4d1afa23240e1a7ca996f7b0d92b8)](https://www.codacy.com/manual/pltnk/toptracksbot?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=pltnk/toptracksbot&amp;utm_campaign=Badge_Grade)
-[![codecov](https://codecov.io/gh/pltnk/toptracksbot/branch/tests/graph/badge.svg?token=8K09IYN9SR)](https://codecov.io/gh/pltnk/toptracksbot)
+[![codecov](https://codecov.io/gh/pltnk/toptracksbot/branch/main/graph/badge.svg?token=8K09IYN9SR)](https://codecov.io/gh/pltnk/toptracksbot)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![License](https://img.shields.io/github/license/pltnk/top_tracks)](https://choosealicense.com/licenses/mit/)
 
