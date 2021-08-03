@@ -30,6 +30,13 @@ jobs:
         - mv .env_example .env
         - docker-compose build --no-cache bot db
         - docker-compose up -d bot
-        - sleep 10
-        - check=`docker ps -a --filter "status=restarting" | grep toptracksbot`
-        - if [[ -n $check ]]; then echo $check | awk '{print $NF}' | xargs docker logs && exit 1; else exit 0; fi
+        - sleep 5
+        - docker ps -a --no-trunc
+        - check=`docker ps -a --filter "status=restarting" | grep toptracksbot` || echo $check
+        - >
+          if [[ -n $check ]];
+          then
+          echo $check | awk '{print $NF}' | xargs docker logs && echo "FAILED" && return 1;
+          else
+          echo "PASSED" && return 0;
+          fi
