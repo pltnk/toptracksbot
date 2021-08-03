@@ -18,6 +18,8 @@ from urllib.parse import quote
 import bs4
 import httpx
 
+from bot.exceptions import PlaylistError, VideoIDsError
+
 
 LASTFM_API_KEY = os.environ["TTBOT_LASTFM_API_KEY"]
 YOUTUBE_API_KEY = os.environ["TTBOT_YOUTUBE_API_KEY"]
@@ -53,7 +55,7 @@ async def get_playlist_api(keyphrase: str, number: int = 3) -> List[str]:
     return playlist
 
 
-async def get_playlist(keyphrase: str, number: int = 3) -> List[str]:
+async def get_playlist_noapi(keyphrase: str, number: int = 3) -> List[str]:
     """
     Create a list of top tracks by the given artist **without** using Last.fm API.
     :param keyphrase: Name of an artist or a band.
@@ -71,6 +73,30 @@ async def get_playlist(keyphrase: str, number: int = 3) -> List[str]:
     playlist = [
         f'{artist} - {tracks[i].get("title")}' for i in range(min(number, len(tracks)))
     ]
+    return playlist
+
+
+async def get_playlist(keyphrase: str, number: int = 3) -> List[str]:
+    """
+    Create a list of top tracks by the given artist.
+    :param keyphrase: Name of an artist or a band.
+    :param number: Number of top tracks to collect.
+    :return: List of top tracks formatted as '<artist> - <track>'.
+    :raise Exception: if unable to get playlist neither via API nor without it.
+    """
+    try:
+        playlist = await get_playlist_api(keyphrase, number)
+    except Exception as e:
+        logger.warning(
+            f"Unable to get playlist for '{keyphrase}' via Last.fm API: {repr(e)}. Proceeding without API."
+        )
+        try:
+            playlist = await get_playlist_noapi(keyphrase, number)
+        except Exception as e:
+            logger.error(
+                f"Unable to get playlist for '{keyphrase}' *without* Last.fm  API: {repr(e)}"
+            )
+            raise e
     return playlist
 
 
@@ -159,16 +185,21 @@ async def create_top(keyphrase: str, number: int = 3) -> List[str]:
     :param keyphrase: Name of an artist or a band.
     :param number: Number of top tracks to collect.
     :return: List of YouTube IDs.
+    :raise PlaylistError: if unable to get playlist from Last.fm.
+    :raise VideoIDSError: if unable to get video ids from YouTube.
     """
     try:
-        playlist = await get_playlist_api(keyphrase, number)
-    except Exception as e:
-        logger.warning(
-            f"An error occurred while creating playlist via Last.fm API: {e}"
-        )
-        logger.info("Creating playlist without API")
         playlist = await get_playlist(keyphrase, number)
-    yt_ids = await get_yt_ids(playlist)
+    except Exception as e:
+        raise PlaylistError(
+            f"Unable to get playlist for '{keyphrase}' from Last.fm: {repr(e)}"
+        )
+    try:
+        yt_ids = await get_yt_ids(playlist)
+    except Exception as e:
+        raise VideoIDsError(
+            f"Unable to get video ids for '{keyphrase}' from YouTube: {repr(e)}"
+        )
     return yt_ids
 
 

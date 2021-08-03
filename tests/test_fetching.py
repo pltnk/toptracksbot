@@ -4,11 +4,12 @@ import uuid
 import pytest
 
 from bot import fetching
+from bot.exceptions import PlaylistError
 
 
 NUMBERS = (0, 1, 3)
 KEYPHRASE = "Nirvana"
-BAD_KEYPHRASE = "".join(str(uuid.uuid4()) for _ in range(5))
+BAD_KEYPHRASE = "".join(str(uuid.uuid4()) for _ in range(10))
 PLAYLIST = [
     "Nirvana - Smells Like Teen Spirit",
     "Nirvana - Come As You Are",
@@ -25,7 +26,10 @@ CORRECTIONS = {
 pytestmark = pytest.mark.asyncio
 
 
-@pytest.mark.parametrize("func", [fetching.get_playlist_api, fetching.get_playlist])
+@pytest.mark.parametrize(
+    "func",
+    [fetching.get_playlist_api, fetching.get_playlist_noapi, fetching.get_playlist],
+)
 async def test_get_playlist(func):
     for n in NUMBERS:
         res = await func(KEYPHRASE, n)
@@ -40,7 +44,7 @@ async def test_get_playlist(func):
 async def test_playlists_equality():
     for n in NUMBERS:
         res1 = await fetching.get_playlist_api(KEYPHRASE, n)
-        res2 = await fetching.get_playlist(KEYPHRASE, n)
+        res2 = await fetching.get_playlist_noapi(KEYPHRASE, n)
         assert res1 == res2
 
 
@@ -81,7 +85,7 @@ async def test_create_top():
         assert len(res) == n
         assert all(isinstance(i, str) for i in res)
         json.dumps(res)
-    with pytest.raises(Exception):
+    with pytest.raises(PlaylistError):
         await fetching.create_top(BAD_KEYPHRASE)
 
 
