@@ -24,7 +24,8 @@ WEBHOOK_PORT = int(os.getenv("TTBOT_WEBHOOK_PORT", "8443"))
 HEROKU_APP = os.getenv("TTBOT_HEROKU_APP", "")
 
 logging.basicConfig(
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
+    format="%(asctime)s - %(levelname)s - %(name)s - %(funcName)s - %(message)s",
+    level=logging.INFO,
 )
 logger = logging.getLogger("bot")
 logger.setLevel(logging.DEBUG)
