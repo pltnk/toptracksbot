@@ -37,7 +37,7 @@ async def get_artist(keyphrase: str) -> str:
         artist = await fetching.get_name(keyphrase)
         artist = artist.lower()
     except Exception as e:
-        logger.exception(f"Unable to fetch artist name from Last.fm: {e}.")
+        logger.error(f"Unable to fetch artist name from Last.fm: {repr(e)}.")
         artist = keyphrase.lower()
     return artist
 
