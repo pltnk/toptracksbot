@@ -26,6 +26,8 @@ jobs:
 
     - stage: Build images and make test run
       script:
+        - sed -i "s#TTBOT_TOKEN=.*#TTBOT_TOKEN=${TTBOT_TOKEN}#" .env_example
+        - mv .env_example .env
         - docker-compose build --no-cache bot db
         - docker-compose up -d bot
         - sleep 10
