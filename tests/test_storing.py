@@ -32,6 +32,7 @@ async def test_get_artist():
         "Slipnot": "slipknot",
         "Sustem Of A Down": "system of a down",
         "Random Text That Is No Way A Band Name": "random text that is no way a band name",
+        "Author and Punisher": "author & punisher",
     }
     for key in cases:
         res = await storing.get_artist(key)
