@@ -32,7 +32,7 @@ async def test_playlists_equality(track_nums, keyphrase):
     "func, sections",
     [
         (lastfm.get_bio_api, ("Tags:", "Similar:", "Read more:")),
-        (lastfm.get_bio, ("Similar:", "Read more:")),
+        (lastfm.get_bio_noapi, ("Similar:", "Read more:")),
     ],
 )
 async def test_get_bio(func, sections, keyphrase, bad_keyphrase):

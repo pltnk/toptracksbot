@@ -112,7 +112,7 @@ async def get_bio_api(keyphrase: str, name_only: bool = False) -> str:
         return bio
 
 
-async def get_bio(keyphrase: str, name_only: bool = False) -> str:
+async def get_bio_noapi(keyphrase: str, name_only: bool = False) -> str:
     """
     Collect a correct name and a short bio of the given artist **without** using Last.fm API.
     :param keyphrase: Name of an artist or a band.
@@ -152,7 +152,7 @@ async def get_info(keyphrase: str) -> str:
             f"Unable to get artist bio for '{keyphrase}' via Last.fm API: {repr(e)}. Proceeding without API."
         )
         try:
-            info = await get_bio(keyphrase)
+            info = await get_bio_noapi(keyphrase)
         except Exception as e:
             logger.error(
                 f"Unable to get artist bio for '{keyphrase}' *without* Last.fm  API: {repr(e)}"
@@ -200,7 +200,7 @@ async def get_name(keyphrase: str) -> str:
                 f"Unable to get artist name for '{keyphrase}' via Last.fm API: {repr(e)}. Proceeding without API."
             )
             try:
-                name = await get_bio(keyphrase, name_only=True)
+                name = await get_bio_noapi(keyphrase, name_only=True)
             except Exception as e:
                 logger.error(
                     f"Unable to get artist name for '{keyphrase}' *without* Last.fm  API: {repr(e)}"
