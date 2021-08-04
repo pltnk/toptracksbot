@@ -10,7 +10,6 @@ import httpx
 from bot.config import LASTFM_API_KEY
 from bot.fetching.util import _quote
 
-
 logger = logging.getLogger("lastfm")
 logger.setLevel(logging.DEBUG)
 
@@ -193,15 +192,21 @@ async def get_name(keyphrase: str) -> str:
         name = await get_corrected_name_api(keyphrase)
     except Exception as e:
         logger.debug(
-            f"Unable to get artist name via Last.fm API method artist.getCorrection: {repr(e)}. "
+            f"Unable to get artist name for '{keyphrase}' via Last.fm API method artist.getCorrection: {repr(e)}. "
             f"Proceeding with artist.getInfo method."
         )
         try:
             name = await get_bio_api(keyphrase, name_only=True)
         except Exception as e:
             logger.debug(
-                f"Unable to get artist name via Last.fm API: {repr(e)}. Proceeding without API."
+                f"Unable to get artist name for '{keyphrase}' via Last.fm API: {repr(e)}. Proceeding without API."
             )
-            name = await get_bio(keyphrase, name_only=True)
+            try:
+                name = await get_bio(keyphrase, name_only=True)
+            except Exception as e:
+                logger.error(
+                    f"Unable to get artist name for '{keyphrase}' *without* Last.fm  API: {repr(e)}"
+                )
+                raise
     logger.debug(f"Got corrected name '{name}' for keyphrase '{keyphrase}'")
     return name
