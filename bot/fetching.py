@@ -96,7 +96,7 @@ async def get_playlist(keyphrase: str, number: int = 3) -> List[str]:
             logger.error(
                 f"Unable to get playlist for '{keyphrase}' *without* Last.fm  API: {repr(e)}"
             )
-            raise e
+            raise
     return playlist
 
 
@@ -161,7 +161,7 @@ async def get_yt_id(track: str) -> str:
             logger.error(
                 f"Unable to get YouTube ID for '{track}' *without* API: {repr(e)}"
             )
-            raise e
+            raise
     return yt_id
 
 
@@ -287,14 +287,14 @@ async def get_name(keyphrase: str) -> str:
         name = await get_corrected_name_api(keyphrase)
     except Exception as e:
         logger.debug(
-            f"Unable to fetch artist name via Last.fm API method artist.getCorrection: {e}. "
+            f"Unable to get artist name via Last.fm API method artist.getCorrection: {repr(e)}. "
             f"Proceeding with artist.getInfo method."
         )
         try:
             name = await get_bio_api(keyphrase, name_only=True)
         except Exception as e:
             logger.debug(
-                f"An error occurred while fetching artist name via Last.fm API: {e}. Proceeding without API."
+                f"Unable to get artist name via Last.fm API: {repr(e)}. Proceeding without API."
             )
             name = await get_bio(keyphrase, name_only=True)
     logger.debug(f"Got corrected name '{name}' for keyphrase '{keyphrase}'")
@@ -310,8 +310,8 @@ async def get_info(keyphrase: str) -> str:
     try:
         info = await get_bio_api(keyphrase)
     except Exception as e:
-        logger.debug(
-            f"An error occurred while fetching artist bio via Last.fm API: {e}. Proceeding without API."
+        logger.warning(
+            f"Unable to get artist bio via Last.fm API: {repr(e)}. Proceeding without API."
         )
         info = await get_bio(keyphrase)
     return info
