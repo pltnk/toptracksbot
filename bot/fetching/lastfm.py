@@ -1,4 +1,3 @@
-import asyncio
 import json
 import logging
 import re
@@ -9,6 +8,7 @@ import httpx
 
 from bot.config import LASTFM_API_KEY
 from bot.fetching.util import _quote
+
 
 logger = logging.getLogger("lastfm")
 logger.setLevel(logging.DEBUG)
@@ -185,8 +185,6 @@ async def get_name(keyphrase: str) -> str:
     Get corrected artist name from Last.fm.
     :param keyphrase: Name of an artist or a band.
     :return: Corrected artist name.
-    >>> asyncio.run(get_name('norvana'))
-    'Nirvana'
     """
     try:
         name = await get_corrected_name_api(keyphrase)
