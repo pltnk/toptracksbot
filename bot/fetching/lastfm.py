@@ -150,9 +150,15 @@ async def get_info(keyphrase: str) -> str:
         info = await get_bio_api(keyphrase)
     except Exception as e:
         logger.warning(
-            f"Unable to get artist bio via Last.fm API: {repr(e)}. Proceeding without API."
+            f"Unable to get artist bio for '{keyphrase}' via Last.fm API: {repr(e)}. Proceeding without API."
         )
-        info = await get_bio(keyphrase)
+        try:
+            info = await get_bio(keyphrase)
+        except Exception as e:
+            logger.error(
+                f"Unable to get artist bio for '{keyphrase}' *without* Last.fm  API: {repr(e)}"
+            )
+            raise
     return info
 
 
