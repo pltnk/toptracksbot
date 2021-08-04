@@ -4,7 +4,7 @@ import uuid
 import pytest
 
 from bot import fetching
-from bot.exceptions import PlaylistError
+from bot.exceptions import PlaylistRetrievalError
 
 
 NUMBERS = (0, 1, 3)
@@ -85,7 +85,7 @@ async def test_create_top():
         assert len(res) == n
         assert all(isinstance(i, str) for i in res)
         json.dumps(res)
-    with pytest.raises(PlaylistError):
+    with pytest.raises(PlaylistRetrievalError):
         await fetching.create_top(BAD_KEYPHRASE)
 
 

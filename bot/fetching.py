@@ -18,7 +18,7 @@ from urllib.parse import quote
 import bs4
 import httpx
 
-from bot.exceptions import PlaylistError, VideoIDsError
+from bot.exceptions import PlaylistRetrievalError, VideoIDsRetrievalError
 
 
 LASTFM_API_KEY = os.environ["TTBOT_LASTFM_API_KEY"]
@@ -191,15 +191,11 @@ async def create_top(keyphrase: str, number: int = 3) -> List[str]:
     try:
         playlist = await get_playlist(keyphrase, number)
     except Exception as e:
-        raise PlaylistError(
-            f"Unable to get playlist for '{keyphrase}' from Last.fm: {repr(e)}"
-        )
+        raise PlaylistRetrievalError(keyphrase) from e
     try:
         yt_ids = await get_yt_ids(playlist)
     except Exception as e:
-        raise VideoIDsError(
-            f"Unable to get video ids for '{keyphrase}' from YouTube: {repr(e)}"
-        )
+        raise VideoIDsRetrievalError(playlist) from e
     return yt_ids
 
 

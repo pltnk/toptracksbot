@@ -15,7 +15,7 @@ from telegram.ext import CallbackContext, CommandHandler, MessageHandler, Update
 from telegram.ext.filters import Filters
 
 from bot import fetching, storing
-from bot.exceptions import PlaylistError, VideoIDsError
+from bot.exceptions import PlaylistRetrievalError, VideoIDsRetrievalError
 
 
 BOT_TOKEN = os.environ["TTBOT_TOKEN"]
@@ -42,14 +42,14 @@ def send_top(update: Update, context: CallbackContext) -> None:
     )
     try:
         top = asyncio.run(storing.process(keyphrase))
-    except PlaylistError as e:
+    except PlaylistRetrievalError as e:
         logger.error(e)
         context.bot.send_message(
             chat_id=update.message.chat_id,
             text=f"An error occurred, most likely I couldn't find this artist on Last.fm."
             f"\nMake sure this name is correct.",
         )
-    except VideoIDsError as e:
+    except VideoIDsRetrievalError as e:
         logger.error(e)
         context.bot.send_message(
             chat_id=update.message.chat_id, text=f"Unable to get videos from YouTube."
