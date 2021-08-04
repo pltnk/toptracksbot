@@ -11,10 +11,14 @@ import json
 import logging
 import os
 import re
+from functools import partial
 from typing import List
+from urllib.parse import quote
 
 import bs4
 import httpx
+
+from bot.exceptions import PlaylistRetrievalError, VideoIDsRetrievalError
 
 
 LASTFM_API_KEY = os.environ["TTBOT_LASTFM_API_KEY"]
@@ -23,6 +27,9 @@ YOUTUBE_REGEXP = re.compile("var ytInitialData = (?P<json>{.+});<")
 
 logger = logging.getLogger("fetching")
 logger.setLevel(logging.DEBUG)
+
+
+_quote = partial(quote, safe="")
 
 
 async def get_playlist_api(keyphrase: str, number: int = 3) -> List[str]:
@@ -35,7 +42,7 @@ async def get_playlist_api(keyphrase: str, number: int = 3) -> List[str]:
     async with httpx.AsyncClient() as client:
         res = await client.get(
             f"https://ws.audioscrobbler.com/2.0/"
-            f"?method=artist.gettoptracks&artist={keyphrase}&limit={number}"
+            f"?method=artist.gettoptracks&artist={_quote(keyphrase)}&limit={number}"
             f"&autocorrect[1]&api_key={LASTFM_API_KEY}&format=json"
         )
     res.raise_for_status()
@@ -48,7 +55,7 @@ async def get_playlist_api(keyphrase: str, number: int = 3) -> List[str]:
     return playlist
 
 
-async def get_playlist(keyphrase: str, number: int = 3) -> List[str]:
+async def get_playlist_noapi(keyphrase: str, number: int = 3) -> List[str]:
     """
     Create a list of top tracks by the given artist **without** using Last.fm API.
     :param keyphrase: Name of an artist or a band.
@@ -57,7 +64,7 @@ async def get_playlist(keyphrase: str, number: int = 3) -> List[str]:
     """
     async with httpx.AsyncClient() as client:
         res = await client.get(
-            f"https://www.last.fm/music/{keyphrase}/+tracks?date_preset=ALL"
+            f"https://www.last.fm/music/{_quote(keyphrase)}/+tracks?date_preset=ALL"
         )
     res.raise_for_status()
     soup = bs4.BeautifulSoup(res.content, "lxml")
@@ -69,68 +76,106 @@ async def get_playlist(keyphrase: str, number: int = 3) -> List[str]:
     return playlist
 
 
-async def fetch_ids_api(playlist: List[str]) -> List[str]:
+async def get_playlist(keyphrase: str, number: int = 3) -> List[str]:
     """
-    Create a list containing a YouTube ID for an each track
-    in the given playlist using YouTube API.
-    :param playlist: List of tracks formatted as '<artist> - <track>'.
-    :return: List of YouTube IDs.
+    Create a list of top tracks by the given artist.
+    :param keyphrase: Name of an artist or a band.
+    :param number: Number of top tracks to collect.
+    :return: List of top tracks formatted as '<artist> - <track>'.
+    :raise Exception: if unable to get playlist neither via API nor without it.
     """
-    ids = []
-    async with httpx.AsyncClient() as client:
-        tasks = []
-        for track in playlist:
-            tasks.append(
-                client.get(
-                    f"https://www.googleapis.com/youtube/v3/search"
-                    f"?part=snippet&maxResults=1&q={track}&key={YOUTUBE_API_KEY}"
-                )
+    try:
+        playlist = await get_playlist_api(keyphrase, number)
+    except Exception as e:
+        logger.warning(
+            f"Unable to get playlist for '{keyphrase}' via Last.fm API: {repr(e)}. Proceeding without API."
+        )
+        try:
+            playlist = await get_playlist_noapi(keyphrase, number)
+        except Exception as e:
+            logger.error(
+                f"Unable to get playlist for '{keyphrase}' *without* Last.fm  API: {repr(e)}"
             )
-        result = await asyncio.gather(*tasks)
-    for counter, res in enumerate(result):
-        if res.status_code == 403:
-            raise ResourceWarning("YouTube API quota has reached the limit")
-        res.raise_for_status()
-        parsed = json.loads(res.text)
-        video_id = parsed["items"][0]["id"]["videoId"]
-        if video_id:
-            logger.info(f"Adding YouTube id for: {playlist[counter]}")
-            ids.append(video_id)
-    return ids
+            raise
+    return playlist
 
 
-async def fetch_ids(playlist: List[str]) -> List[str]:
+async def get_yt_id_api(track: str) -> str:
     """
-    Create a list containing a YouTube ID for an each track
-    in the given playlist **without** using YouTube API.
-    :param playlist: List of tracks formatted as '<artist> - <track>'.
-    :return: List of YouTube IDs.
+    Get YouTube video ID for a track using YouTube API.
+    :param track: Track title formatted as '<artist> - <track>'.
+    :return: Corresponding YouTube video ID.
+    :raise ResourceWarning: if API quota hit the limit.
+    :raise Exception: if unable to get ID via API.
     """
-    ids = []
     async with httpx.AsyncClient() as client:
-        tasks = []
-        for track in playlist:
-            tasks.append(
-                client.get(f"https://www.youtube.com/results?search_query={track}")
+        res = await client.get(
+            f"https://www.googleapis.com/youtube/v3/search"
+            f"?part=snippet&maxResults=1&q={_quote(track)}&key={YOUTUBE_API_KEY}"
+        )
+    if res.status_code == 403:
+        raise ResourceWarning("YouTube API quota has reached the limit")
+    res.raise_for_status()
+    parsed = json.loads(res.text)
+    video_id = parsed["items"][0]["id"]["videoId"]
+    return video_id
+
+
+async def get_yt_id_noapi(track: str) -> str:
+    """
+    Get YouTube video ID for a track *without* using YouTube API.
+    :param track: Track title formatted as '<artist> - <track>'.
+    :return: Corresponding YouTube video ID.
+    :raise Exception: if unable to get ID without API.
+    """
+    async with httpx.AsyncClient() as client:
+        res = await client.get(
+            f"https://www.youtube.com/results?search_query={_quote(track)}"
+        )
+    res.raise_for_status()
+    match = YOUTUBE_REGEXP.search(res.text)
+    data = json.loads(match.group("json"))
+    # fmt:off
+    slr = data["contents"]["twoColumnSearchResultsRenderer"]["primaryContents"]["sectionListRenderer"]
+    video_id = slr["contents"][0]["itemSectionRenderer"]["contents"][0]["videoRenderer"]["videoId"]
+    # fmt:on
+    return video_id
+
+
+async def get_yt_id(track: str) -> str:
+    """
+    Get YouTube video ID for a track.
+    :param track: Track title formatted as '<artist> - <track>'.
+    :return: Corresponding YouTube video ID.
+    :raise Exception: if unable to get ID neither via API nor without it.
+    """
+    try:
+        yt_id = await get_yt_id_api(track)
+    except Exception as e:
+        logger.warning(
+            f"Unable to get YouTube ID for '{track}' via API: {repr(e)}. Proceeding without API."
+        )
+        try:
+            yt_id = await get_yt_id_noapi(track)
+        except Exception as e:
+            logger.error(
+                f"Unable to get YouTube ID for '{track}' *without* API: {repr(e)}"
             )
-        result = await asyncio.gather(*tasks)
-    for counter, res in enumerate(result):
-        if isinstance(res, httpx.Response) and res.status_code == 200:
-            try:
-                match = YOUTUBE_REGEXP.search(res.text)
-                data = json.loads(match.group("json"))
-                # fmt:off
-                slr = data["contents"]["twoColumnSearchResultsRenderer"]["primaryContents"]["sectionListRenderer"]
-                yt_id = slr["contents"][0]["itemSectionRenderer"]["contents"][0]["videoRenderer"]["videoId"]
-                # fmt:on
-            except Exception as e:
-                logger.exception(
-                    f"Unable to fetch YouTube ID *without* API for {playlist[counter]}: {e}"
-                )
-            else:
-                logger.debug(f"Adding YouTube id for: {playlist[counter]}")
-                ids.append(yt_id)
-    return ids
+            raise
+    return yt_id
+
+
+async def get_yt_ids(playlist: List[str]) -> List[str]:
+    """
+    Create a list containing a YouTube ID for each track
+    in the given playlist.
+    :param playlist: List of tracks formatted as '<artist> - <track>'.
+    :return: List of corresponding YouTube IDs.
+    """
+    tasks = [get_yt_id(track) for track in playlist]
+    result = await asyncio.gather(*tasks, return_exceptions=True)
+    yt_ids = [i for i in result if isinstance(i, str)]
+    return yt_ids
 
 
 async def create_top(keyphrase: str, number: int = 3) -> List[str]:
@@ -140,22 +185,18 @@ async def create_top(keyphrase: str, number: int = 3) -> List[str]:
     :param keyphrase: Name of an artist or a band.
     :param number: Number of top tracks to collect.
     :return: List of YouTube IDs.
+    :raise PlaylistError: if unable to get playlist from Last.fm.
+    :raise VideoIDSError: if unable to get video ids from YouTube.
     """
     try:
-        playlist = await get_playlist_api(keyphrase, number)
-    except Exception as e:
-        logger.warning(
-            f"An error occurred while creating playlist via Last.fm API: {e}"
-        )
-        logger.info("Creating playlist without API")
         playlist = await get_playlist(keyphrase, number)
-    try:
-        ids = await fetch_ids_api(playlist)
     except Exception as e:
-        logger.warning(f"An error occurred while fetching YouTube ids via API: {e}")
-        logger.info("Fetching YouTube ids without API")
-        ids = await fetch_ids(playlist)
-    return ids
+        raise PlaylistRetrievalError(keyphrase) from e
+    try:
+        yt_ids = await get_yt_ids(playlist)
+    except Exception as e:
+        raise VideoIDsRetrievalError(playlist) from e
+    return yt_ids
 
 
 async def get_bio_api(keyphrase: str, name_only: bool = False) -> str:
@@ -168,7 +209,8 @@ async def get_bio_api(keyphrase: str, name_only: bool = False) -> str:
     async with httpx.AsyncClient() as client:
         res = await client.get(
             f"https://ws.audioscrobbler.com/2.0/"
-            f"?method=artist.getinfo&artist={keyphrase}&autocorrect[1]&api_key={LASTFM_API_KEY}&format=json"
+            f"?method=artist.getinfo&artist={_quote(keyphrase)}&autocorrect[1]"
+            f"&api_key={LASTFM_API_KEY}&format=json"
         )
     res.raise_for_status()
     parsed = json.loads(res.text)
@@ -195,7 +237,7 @@ async def get_bio(keyphrase: str, name_only: bool = False) -> str:
     :return: Either just a name of an artist or their short bio.
     """
     async with httpx.AsyncClient() as client:
-        res = await client.get(f"https://www.last.fm/music/{keyphrase}/+wiki")
+        res = await client.get(f"https://www.last.fm/music/{_quote(keyphrase)}/+wiki")
     res.raise_for_status()
     soup = bs4.BeautifulSoup(res.content, "lxml")
     name = soup.find("h1", attrs={"class": "header-new-title"}).text.strip()
@@ -224,7 +266,8 @@ async def get_corrected_name_api(keyphrase: str) -> str:
     async with httpx.AsyncClient() as client:
         res = await client.get(
             f"https://ws.audioscrobbler.com/2.0/"
-            f"?method=artist.getcorrection&artist={keyphrase}&api_key={LASTFM_API_KEY}&format=json"
+            f"?method=artist.getcorrection&artist={_quote(keyphrase)}"
+            f"&api_key={LASTFM_API_KEY}&format=json"
         )
     res.raise_for_status()
     parsed = json.loads(res.text)
@@ -244,14 +287,14 @@ async def get_name(keyphrase: str) -> str:
         name = await get_corrected_name_api(keyphrase)
     except Exception as e:
         logger.debug(
-            f"Unable to fetch artist name via Last.fm API method artist.getCorrection: {e}. "
+            f"Unable to get artist name via Last.fm API method artist.getCorrection: {repr(e)}. "
             f"Proceeding with artist.getInfo method."
         )
         try:
             name = await get_bio_api(keyphrase, name_only=True)
         except Exception as e:
             logger.debug(
-                f"An error occurred while fetching artist name via Last.fm API: {e}. Proceeding without API."
+                f"Unable to get artist name via Last.fm API: {repr(e)}. Proceeding without API."
             )
             name = await get_bio(keyphrase, name_only=True)
     logger.debug(f"Got corrected name '{name}' for keyphrase '{keyphrase}'")
@@ -267,8 +310,8 @@ async def get_info(keyphrase: str) -> str:
     try:
         info = await get_bio_api(keyphrase)
     except Exception as e:
-        logger.debug(
-            f"An error occurred while fetching artist bio via Last.fm API: {e}. Proceeding without API."
+        logger.warning(
+            f"Unable to get artist bio via Last.fm API: {repr(e)}. Proceeding without API."
         )
         info = await get_bio(keyphrase)
     return info

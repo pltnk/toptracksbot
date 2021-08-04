@@ -13,6 +13,7 @@ before_install:
 
 jobs:
   include:
+
     - stage: Run tests with coverage
       script:
         - sed -i "s#TTBOT_LASTFM_API_KEY=.*#TTBOT_LASTFM_API_KEY=${TTBOT_LASTFM_API_KEY}#" .env_example
@@ -22,3 +23,20 @@ jobs:
         - sed -i '$s#$# \&\& codecov#' ./tests/Dockerfile
         - ci_env=`bash <(curl -s https://codecov.io/env)`
         - docker-compose run --rm $ci_env -e CI=true tests
+
+    - stage: Build images and make test run
+      script:
+        - sed -i "s#TTBOT_TOKEN=.*#TTBOT_TOKEN=${TTBOT_TOKEN}#" .env_example
+        - mv .env_example .env
+        - docker-compose build --no-cache bot db
+        - docker-compose up -d bot
+        - sleep 5
+        - docker ps -a --no-trunc
+        - check=`docker ps -a --filter "status=restarting" | grep toptracksbot` || echo $check
+        - >
+          if [[ -n $check ]];
+          then
+          echo $check | awk '{print $NF}' | xargs docker logs && echo "FAILED" && return 1;
+          else
+          echo "PASSED" && return 0;
+          fi

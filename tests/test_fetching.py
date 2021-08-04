@@ -1,13 +1,15 @@
 import json
+import uuid
 
 import pytest
 
 from bot import fetching
+from bot.exceptions import PlaylistRetrievalError
 
 
 NUMBERS = (0, 1, 3)
 KEYPHRASE = "Nirvana"
-BAD_KEYPHRASE = "random text that is no way a band name"
+BAD_KEYPHRASE = "".join(str(uuid.uuid4()) for _ in range(10))
 PLAYLIST = [
     "Nirvana - Smells Like Teen Spirit",
     "Nirvana - Come As You Are",
@@ -18,12 +20,16 @@ CORRECTIONS = {
     "norvana": "Nirvana",
     "slipnot": "Slipknot",
     "sustem of a down": "System of a Down",
+    "author and punisher": "Author & Punisher",
 }
 
 pytestmark = pytest.mark.asyncio
 
 
-@pytest.mark.parametrize("func", [fetching.get_playlist_api, fetching.get_playlist])
+@pytest.mark.parametrize(
+    "func",
+    [fetching.get_playlist_api, fetching.get_playlist_noapi, fetching.get_playlist],
+)
 async def test_get_playlist(func):
     for n in NUMBERS:
         res = await func(KEYPHRASE, n)
@@ -38,7 +44,7 @@ async def test_get_playlist(func):
 async def test_playlists_equality():
     for n in NUMBERS:
         res1 = await fetching.get_playlist_api(KEYPHRASE, n)
-        res2 = await fetching.get_playlist(KEYPHRASE, n)
+        res2 = await fetching.get_playlist_noapi(KEYPHRASE, n)
         assert res1 == res2
 
 
@@ -46,16 +52,25 @@ async def test_playlists_equality():
     "func",
     [
         pytest.param(
-            fetching.fetch_ids_api,
+            fetching.get_yt_id_api,
             marks=pytest.mark.xfail(
-                reason="YouTube API quota has reached the limit", raises=ResourceWarning
+                reason="YouTube API quota may reach the limit", raises=ResourceWarning
             ),
         ),
-        fetching.fetch_ids,
+        fetching.get_yt_id_noapi,
+        fetching.get_yt_id,
     ],
 )
-async def test_fetch_ids(func):
-    res = await func(PLAYLIST)
+async def test_get_yt_id(func):
+    for counter, track in enumerate(PLAYLIST):
+        res = await func(track)
+        assert res == YT_IDS[counter]
+    with pytest.raises(Exception):
+        await func(BAD_KEYPHRASE)
+
+
+async def test_get_yt_ids():
+    res = await fetching.get_yt_ids(PLAYLIST)
     assert isinstance(res, list)
     assert len(res) == len(PLAYLIST)
     assert all(isinstance(i, str) for i in res)
@@ -70,7 +85,7 @@ async def test_create_top():
         assert len(res) == n
         assert all(isinstance(i, str) for i in res)
         json.dumps(res)
-    with pytest.raises(Exception):
+    with pytest.raises(PlaylistRetrievalError):
         await fetching.create_top(BAD_KEYPHRASE)
 
 
