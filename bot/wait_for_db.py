@@ -1,13 +1,8 @@
 import asyncio
-import os
 
 import asyncpg
 
-from bot.storing import DATABASE_URI
-
-
-RETRIES = int(os.getenv("TTBOT_DBCONN_RETRIES", 5))
-TIMEOUT = int(os.getenv("TTBOT_DBCONN_TIMEOUT", 5))
+from bot.config import DATABASE_URI, DBCONN_RETRIES, DBCONN_TIMEOUT
 
 
 async def ping_db(db_uri: str, retries: int, timeout: int) -> None:
@@ -31,7 +26,7 @@ async def ping_db(db_uri: str, retries: int, timeout: int) -> None:
 
 
 def main() -> None:
-    asyncio.run(ping_db(DATABASE_URI, RETRIES, TIMEOUT))
+    asyncio.run(ping_db(DATABASE_URI, DBCONN_RETRIES, DBCONN_TIMEOUT))
 
 
 if __name__ == "__main__":

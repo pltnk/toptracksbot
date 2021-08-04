@@ -1,19 +1,19 @@
 import datetime
-import os
 
 import pytest
 
 from bot import wait_for_db
 
 
-DATABASE_URI = os.environ["TTBOT_DATABASE_URI"]
-
-
 @pytest.mark.asyncio
 @pytest.mark.parametrize(
     "db_uri, retries, timeout",
     [
-        (DATABASE_URI, wait_for_db.RETRIES, wait_for_db.TIMEOUT),
+        (
+            wait_for_db.DATABASE_URI,
+            wait_for_db.DBCONN_RETRIES,
+            wait_for_db.DBCONN_TIMEOUT,
+        ),
         ("invalid URI", 3, 1),
     ],
 )
