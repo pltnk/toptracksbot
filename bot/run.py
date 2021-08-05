@@ -8,20 +8,16 @@ GitHub: https://github.com/pltnk/toptracksbot
 
 import asyncio
 import logging
-import os
 
 from telegram import ChatAction, Update
 from telegram.ext import CallbackContext, CommandHandler, MessageHandler, Updater
 from telegram.ext.filters import Filters
 
-from bot import fetching, storing
+from bot.config import BOT_TOKEN, BOT_MODE, WEBHOOK_PORT, HEROKU_APP
 from bot.exceptions import PlaylistRetrievalError, VideoIDsRetrievalError
+from bot.fetching.lastfm import get_info
+from bot.processing import get_top
 
-
-BOT_TOKEN = os.environ["TTBOT_TOKEN"]
-BOT_MODE = os.getenv("TTBOT_MODE", "dev")
-WEBHOOK_PORT = int(os.getenv("TTBOT_WEBHOOK_PORT", "8443"))
-HEROKU_APP = os.getenv("TTBOT_HEROKU_APP", "")
 
 logging.basicConfig(
     format="%(asctime)s - %(levelname)s - %(name)s - %(funcName)s - %(message)s",
@@ -41,7 +37,7 @@ def send_top(update: Update, context: CallbackContext) -> None:
         chat_id=update.message.chat_id, action=ChatAction.TYPING
     )
     try:
-        top = asyncio.run(storing.process(keyphrase))
+        top = asyncio.run(get_top(keyphrase))
     except PlaylistRetrievalError as e:
         logger.error(e)
         context.bot.send_message(
@@ -90,8 +86,17 @@ def send_info(update: Update, context: CallbackContext) -> None:
         context.bot.send_chat_action(
             chat_id=update.message.chat_id, action=ChatAction.TYPING
         )
-        info = asyncio.run(fetching.get_info(keyphrase))
-        context.bot.send_message(chat_id=update.message.chat_id, text=info)
+        try:
+            info = asyncio.run(get_info(keyphrase))
+        except Exception as e:
+            logger.exception(e)
+            context.bot.send_message(
+                chat_id=update.message.chat_id,
+                text=f"Unexpected error, feel free to open an issue on GitHub: "
+                f"github.com/pltnk/toptracksbot/issues/new",
+            )
+        else:
+            context.bot.send_message(chat_id=update.message.chat_id, text=info)
 
 
 def send_help(update: Update, context: CallbackContext) -> None:

@@ -8,22 +8,18 @@ GitHub: https://github.com/pltnk/toptracksbot
 
 import json
 import logging
-import os
 from datetime import datetime
 from typing import List
 
 import asyncpg
 
-from bot import fetching
+from bot.config import DATABASE_URI, VALID_FOR_DAYS
+from bot.exceptions import PlaylistRetrievalError, VideoIDsRetrievalError
+from bot.fetching.lastfm import get_name, get_playlist
+from bot.fetching.youtube import get_yt_ids
 
 
-DATABASE_URI = os.getenv(
-    "TTBOT_DATABASE_URI",
-    f"postgres://{os.getenv('TTBOT_DATABASE_USER')}:{os.getenv('TTBOT_DATABASE_PASS')}@db/toptracksbot",
-)
-VALID_FOR_DAYS = int(os.getenv("TTBOT_VALID_FOR_DAYS", 30))
-
-logger = logging.getLogger("storing")
+logger = logging.getLogger("processing")
 logger.setLevel(logging.DEBUG)
 
 
@@ -34,7 +30,7 @@ async def get_artist(keyphrase: str) -> str:
     :return: Artist name.
     """
     try:
-        artist = await fetching.get_name(keyphrase)
+        artist = await get_name(keyphrase)
         artist = artist.lower()
     except Exception as e:
         logger.error(f"Unable to fetch artist name from Last.fm: {repr(e)}.")
@@ -42,7 +38,28 @@ async def get_artist(keyphrase: str) -> str:
     return artist
 
 
-async def process(keyphrase: str) -> List[str]:
+async def create_top(keyphrase: str, number: int = 3) -> List[str]:
+    """
+    Create list of str containing YouTube IDs of the top tracks
+    by the given artist according to Last.fm overall charts.
+    :param keyphrase: Name of an artist or a band.
+    :param number: Number of top tracks to collect.
+    :return: List of YouTube IDs.
+    :raise PlaylistError: if unable to get playlist from Last.fm.
+    :raise VideoIDSError: if unable to get video ids from YouTube.
+    """
+    try:
+        playlist = await get_playlist(keyphrase, number)
+    except Exception as e:
+        raise PlaylistRetrievalError(keyphrase) from e
+    try:
+        yt_ids = await get_yt_ids(playlist)
+    except Exception as e:
+        raise VideoIDsRetrievalError(playlist) from e
+    return yt_ids
+
+
+async def get_top(keyphrase: str) -> List[str]:
     """
     Get YouTube ids of top tracks by the given artist
     from the database if there is valid data for this artist.
@@ -62,7 +79,7 @@ async def process(keyphrase: str) -> List[str]:
         tracks = json.loads(record["tracks"])
     else:
         logger.info(f"No valid data for '{artist}' in the database")
-        tracks = await fetching.create_top(artist)
+        tracks = await create_top(artist)
         if tracks:
             tracks_json = json.dumps(tracks)
             query = """INSERT INTO top (artist, tracks, date, requests)
