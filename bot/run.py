@@ -86,8 +86,17 @@ def send_info(update: Update, context: CallbackContext) -> None:
         context.bot.send_chat_action(
             chat_id=update.message.chat_id, action=ChatAction.TYPING
         )
-        info = asyncio.run(get_info(keyphrase))
-        context.bot.send_message(chat_id=update.message.chat_id, text=info)
+        try:
+            info = asyncio.run(get_info(keyphrase))
+        except Exception as e:
+            logger.exception(e)
+            context.bot.send_message(
+                chat_id=update.message.chat_id,
+                text=f"Unexpected error, feel free to open an issue on GitHub: "
+                f"github.com/pltnk/toptracksbot/issues/new",
+            )
+        else:
+            context.bot.send_message(chat_id=update.message.chat_id, text=info)
 
 
 def send_help(update: Update, context: CallbackContext) -> None:
