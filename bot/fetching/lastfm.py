@@ -191,20 +191,19 @@ async def get_name(keyphrase: str) -> str:
     except Exception as e:
         logger.debug(
             f"Unable to get artist name for '{keyphrase}' via Last.fm API method artist.getCorrection: {repr(e)}. "
-            f"Proceeding with artist.getInfo method."
+            f"Proceeding without API."
         )
         try:
-            name = await get_bio_api(keyphrase, name_only=True)
+            name = await get_bio_noapi(keyphrase, name_only=True)
         except Exception as e:
             logger.debug(
-                f"Unable to get artist name for '{keyphrase}' via Last.fm API: {repr(e)}. Proceeding without API."
+                f"Unable to get artist name for '{keyphrase}' *without* Last.fm API: {repr(e)}. "
+                f"Proceeding using artist.getInfo API method which may work incorrectly."
             )
             try:
-                name = await get_bio_noapi(keyphrase, name_only=True)
+                name = await get_bio_api(keyphrase, name_only=True)
             except Exception as e:
-                logger.error(
-                    f"Unable to get artist name for '{keyphrase}' *without* Last.fm  API: {repr(e)}"
-                )
+                logger.error(f"Unable to get artist name for '{keyphrase}': {repr(e)}")
                 raise
     logger.debug(f"Got corrected name '{name}' for keyphrase '{keyphrase}'")
     return name

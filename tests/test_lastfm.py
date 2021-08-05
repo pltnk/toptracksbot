@@ -1,3 +1,4 @@
+from functools import partial
 from typing import Callable, Dict, List, Tuple
 
 import pytest
@@ -37,14 +38,12 @@ async def test_playlists_equality(track_nums: List[int], keyphrase: str) -> None
     [
         (lastfm.get_bio_api, ("Tags:", "Similar:", "Read more:")),
         (lastfm.get_bio_noapi, ("Similar:", "Read more:")),
+        (lastfm.get_info, ("Similar:", "Read more:")),
     ],
 )
-async def test_get_bio(
+async def test_get_info(
     func: Callable, sections: Tuple[str, ...], keyphrase: str, bad_keyphrase: str
 ) -> None:
-    res = await func(keyphrase, name_only=True)
-    assert isinstance(res, str)
-    assert res == keyphrase
     res = await func(keyphrase)
     assert isinstance(res, str)
     assert all(s in res for s in sections)
@@ -52,22 +51,33 @@ async def test_get_bio(
         await func(bad_keyphrase)
 
 
-async def test_get_info(keyphrase: str, bad_keyphrase: str) -> None:
-    res = await lastfm.get_info(keyphrase)
-    assert isinstance(res, str)
-    sections = ("Similar:", "Read more:")
-    assert all(s in res for s in sections)
-    with pytest.raises(Exception):
-        await lastfm.get_info(bad_keyphrase)
-
-
-@pytest.mark.parametrize("func", [lastfm.get_corrected_name_api, lastfm.get_name])
+@pytest.mark.parametrize(
+    "func",
+    [
+        pytest.param(
+            partial(lastfm.get_bio_api, name_only=True),
+            id="get_bio_api_name_only",
+            marks=pytest.mark.xfail(
+                reason="'autocorrect' parameter of artist.getinfo method of Last.fm API may work incorrectly",
+                raises=RuntimeWarning,
+            ),
+        ),
+        pytest.param(
+            partial(lastfm.get_bio_noapi, name_only=True), id="get_bio_noapi_name_only"
+        ),
+        lastfm.get_corrected_name_api,
+        lastfm.get_name,
+    ],
+)
 async def test_get_name(
     func: Callable, name_corrections: Dict[str, str], bad_keyphrase: str
 ) -> None:
     for key in name_corrections:
         res = await func(key)
         assert isinstance(res, str)
-        assert res == name_corrections[key]
+        try:
+            assert res == name_corrections[key]
+        except AssertionError as e:
+            raise RuntimeWarning from e
     with pytest.raises(Exception):
         await func(bad_keyphrase)
