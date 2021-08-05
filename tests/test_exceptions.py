@@ -3,7 +3,7 @@ import pytest
 from bot.exceptions import PlaylistRetrievalError, VideoIDsRetrievalError
 
 
-def test_playlist_retrieval_error():
+def test_playlist_retrieval_error() -> None:
     keyphrase = "test"
     with pytest.raises(PlaylistRetrievalError) as exc_info:
         raise PlaylistRetrievalError(keyphrase)
@@ -12,7 +12,7 @@ def test_playlist_retrieval_error():
     )
 
 
-def test_video_ids_retrieval_error():
+def test_video_ids_retrieval_error() -> None:
     playlist = ["a", "b", "c"]
     with pytest.raises(VideoIDsRetrievalError) as exc_info:
         raise VideoIDsRetrievalError(playlist)

@@ -1,4 +1,5 @@
 import json
+from typing import Callable, List
 
 import pytest
 
@@ -21,7 +22,9 @@ pytestmark = pytest.mark.asyncio
         youtube.get_yt_id,
     ],
 )
-async def test_get_yt_id(func, playlist, expected_yt_ids, bad_keyphrase):
+async def test_get_yt_id(
+    func: Callable, playlist: List[str], expected_yt_ids: List[str], bad_keyphrase: str
+) -> None:
     for counter, track in enumerate(playlist):
         res = await func(track)
         assert res == expected_yt_ids[counter]
@@ -29,7 +32,7 @@ async def test_get_yt_id(func, playlist, expected_yt_ids, bad_keyphrase):
         await func(bad_keyphrase)
 
 
-async def test_get_yt_ids(playlist, expected_yt_ids):
+async def test_get_yt_ids(playlist: List[str], expected_yt_ids: List[str]) -> None:
     res = await youtube.get_yt_ids(playlist)
     assert isinstance(res, list)
     assert len(res) == len(playlist)

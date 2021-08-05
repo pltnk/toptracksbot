@@ -17,7 +17,7 @@ from bot import wait_for_db
         ("invalid URI", 3, 1),
     ],
 )
-async def test_ping_db(db_uri: str, retries: int, timeout: int):
+async def test_ping_db(db_uri: str, retries: int, timeout: int) -> None:
     start = datetime.datetime.now()
     await wait_for_db.ping_db(db_uri, retries, timeout)
     end = datetime.datetime.now()
@@ -25,5 +25,5 @@ async def test_ping_db(db_uri: str, retries: int, timeout: int):
     assert passed <= retries * timeout
 
 
-def test_main():
+def test_main() -> None:
     wait_for_db.main()

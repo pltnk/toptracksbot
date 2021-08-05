@@ -1,7 +1,9 @@
 import datetime
 import json
+from typing import Dict, List
 
 import pytest
+from asyncpg.connection import Connection
 
 from bot import processing
 from bot.exceptions import PlaylistRetrievalError
@@ -10,13 +12,15 @@ from bot.exceptions import PlaylistRetrievalError
 pytestmark = pytest.mark.asyncio
 
 
-async def test_get_artist(get_artist_cases):
+async def test_get_artist(get_artist_cases: Dict[str, str]) -> None:
     for key in get_artist_cases:
         res = await processing.get_artist(key)
         assert res == get_artist_cases[key]
 
 
-async def test_create_top(track_nums, keyphrase, bad_keyphrase):
+async def test_create_top(
+    track_nums: List[int], keyphrase: str, bad_keyphrase: str
+) -> None:
     for n in track_nums:
         res = await processing.create_top(keyphrase, n)
         assert isinstance(res, list)
@@ -27,14 +31,14 @@ async def test_create_top(track_nums, keyphrase, bad_keyphrase):
         await processing.create_top(bad_keyphrase)
 
 
-async def test_get_top(db_conn, keyphrase, yt_ids_num):
+async def test_get_top(db_conn: Connection, keyphrase: str, yt_ids_num: int) -> None:
     res = await processing.get_top(keyphrase)
     assert isinstance(res, list)
     assert len(res) == yt_ids_num
     assert all(isinstance(i, str) for i in res)
 
 
-async def test_create_record(db_conn, keyphrase):
+async def test_create_record(db_conn: Connection, keyphrase: str) -> None:
     keyphrase_low = keyphrase.lower()
     record = await db_conn.fetchrow(
         "SELECT * FROM top WHERE artist = $1", keyphrase_low
@@ -55,7 +59,7 @@ async def test_create_record(db_conn, keyphrase):
     assert record["requests"] == 1
 
 
-async def test_update_record(db_conn, keyphrase):
+async def test_update_record(db_conn: Connection, keyphrase: str) -> None:
     keyphrase_low = keyphrase.lower()
     old_date = (
         datetime.datetime.now() - datetime.timedelta(days=processing.VALID_FOR_DAYS + 1)
@@ -88,7 +92,7 @@ async def test_update_record(db_conn, keyphrase):
     assert real_tracks != mock_tracks
 
 
-async def test_find_record(db_conn, keyphrase):
+async def test_find_record(db_conn: Connection, keyphrase: str) -> None:
     keyphrase_low = keyphrase.lower()
     mock_tracks = ["a", "b", "c"]
     mock_tracks_json = json.dumps(mock_tracks)

@@ -58,7 +58,7 @@ async def get_yt_id_noapi(track: str) -> str:
         )
     res.raise_for_status()
     match = YOUTUBE_REGEXP.search(res.text)
-    data = json.loads(match.group("json"))
+    data = json.loads(match.group("json"))  # type: ignore
     # fmt:off
     slr = data["contents"]["twoColumnSearchResultsRenderer"]["primaryContents"]["sectionListRenderer"]
     video_id = slr["contents"][0]["itemSectionRenderer"]["contents"][0]["videoRenderer"]["videoId"]
