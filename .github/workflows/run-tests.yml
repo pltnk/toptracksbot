@@ -1,0 +1,77 @@
+name: Run tests
+
+on:
+  schedule:
+    - cron: '0 0 * * MON'
+  push:
+    branches: [ main ]
+    paths-ignore: [ '**/README.md', '**/.gitignore', '**/LICENSE', '**/Procfile', '**/runtime.txt' ]
+  pull_request:
+    branches: [ main ]
+    paths-ignore: [ '**/README.md', '**/.gitignore', '**/LICENSE', '**/Procfile', '**/runtime.txt' ]
+
+jobs:
+  run_tests:
+
+    runs-on: ubuntu-latest
+   
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Prepare .env
+        env:
+          TTBOT_LASTFM_API_KEY: ${{ secrets.TTBOT_LASTFM_API_KEY }}
+          TTBOT_YOUTUBE_API_KEY: ${{ secrets.TTBOT_YOUTUBE_API_KEY }}
+        run: |
+          sed -i "s#TTBOT_LASTFM_API_KEY=.*#TTBOT_LASTFM_API_KEY=${TTBOT_LASTFM_API_KEY}#" .env_example
+          sed -i "s#TTBOT_YOUTUBE_API_KEY=.*#TTBOT_YOUTUBE_API_KEY=${TTBOT_YOUTUBE_API_KEY}#" .env_example
+          mv .env_example .env
+          
+      - name: Run tests with coverage
+        run: |
+          mkdir reports
+          sed -i '$s#$# --cov-report term --cov-report xml \&\& mv coverage.xml /reports#' ./tests/Dockerfile
+          docker-compose run --rm -v "$PWD/reports:/reports" tests
+      
+      - name: Upload coverage report
+        uses: codecov/codecov-action@v2
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./reports/coverage.xml
+          verbose: true
+  
+  test_build:
+  
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+        
+      - name: Prepare .env
+        env:
+          TTBOT_TOKEN: ${{ secrets.TTBOT_TOKEN }}
+        run: |
+          sed -i "s#TTBOT_TOKEN=.*#TTBOT_TOKEN=${TTBOT_TOKEN}#" .env_example
+          mv .env_example .env
+          
+      - name: Build images
+        run: |
+          docker-compose build --no-cache bot db
+          
+      - name: Make test run
+        run: |
+          docker-compose up -d bot
+          sleep 5
+          
+      - name: Check container
+        run: |
+          docker ps -a --no-trunc
+          check=`docker ps -a --filter "status=restarting" | grep toptracksbot` || echo $check
+          if [[ -n $check ]];
+          then
+          echo $check | awk '{print $NF}' | xargs docker logs && echo "FAILED" && exit 1;
+          else
+          echo "PASSED" && exit 0;
+          fi
