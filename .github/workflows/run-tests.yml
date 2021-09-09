@@ -39,7 +39,7 @@ jobs:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
         run: |
           ci_env=`bash <(curl -s https://codecov.io/env)`
-          docker-compose run --rm $ci_env -e CI= tests
+          docker-compose run --rm $ci_env -e CI=true tests
   
   test_build:
   
