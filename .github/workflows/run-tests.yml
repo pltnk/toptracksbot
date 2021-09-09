@@ -31,7 +31,7 @@ jobs:
       - name: Run tests with coverage
         run: |
           mkdir shared
-          sed -i '$s#$# --cov-report term --cov-report xml \&\& mv coverage.xml shared#' ./tests/Dockerfile
+          sed -i '$s#$# --cov-report term --cov-report xml \&\& mv coverage.xml /shared#' ./tests/Dockerfile
           docker-compose run --rm -v "$PWD/shared:/shared" tests
       
       - name: Upload coverage report
