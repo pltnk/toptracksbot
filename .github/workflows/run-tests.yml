@@ -30,9 +30,8 @@ jobs:
           
       - name: Enable codecov
         run: |
-          echo "codecov" >> ./tests/requirements.txt
           sed -i '$ i\ADD https://uploader.codecov.io/latest/linux/codecov /opt/codecov' ./tests/Dockerfile
-          sed -i '$ i\RUN chmod +x codecov /opt/codecov' ./tests/Dockerfile
+          sed -i '$ i\RUN chmod +x /opt/codecov' ./tests/Dockerfile
           sed -i '$s#$# \&\& ./opt/codecov#' ./tests/Dockerfile
           
       - name: Run tests with coverage
