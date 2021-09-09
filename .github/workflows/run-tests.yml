@@ -1,0 +1,67 @@
+name: Run tests
+
+on:
+  push:
+    branches: [ main, dev ]
+    paths-ignore: [ '**/README.md' ]
+  pull_request:
+    branches: [ main, dev ]
+    paths-ignore: [ '**/README.md' ]
+
+jobs:
+  run_tests:
+
+    runs-on: ubuntu-latest
+   
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      
+      - name: Prepare .env
+        run: |
+          sed -i "s#TTBOT_LASTFM_API_KEY=.*#TTBOT_LASTFM_API_KEY=${TTBOT_LASTFM_API_KEY}#" .env_example
+          sed -i "s#TTBOT_YOUTUBE_API_KEY=.*#TTBOT_YOUTUBE_API_KEY=${TTBOT_YOUTUBE_API_KEY}#" .env_example
+          mv .env_example .env
+          
+      - name: Enable codecov
+        run: |
+          echo "codecov" >> ./tests/requirements.txt
+          sed -i '$s#$# \&\& codecov#' ./tests/Dockerfile
+          ci_env=`bash <(curl -s https://codecov.io/env)`
+          
+      - name: Run tests
+        run: |
+          docker-compose run --rm $ci_env -e CI=true tests
+  
+  build:
+  
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+        
+      - name: Prepare .env
+        run: |
+          sed -i "s#TTBOT_TOKEN=.*#TTBOT_TOKEN=${TTBOT_TOKEN}#" .env_example
+          mv .env_example .env
+          
+      - name: Build
+        run: |
+          docker-compose build --no-cache bot db
+          
+      - name: Make test run
+        run: |
+          docker-compose up -d bot
+          sleep 5
+          
+      - name: Check container
+        run: |
+          docker ps -a --no-trunc
+          check=`docker ps -a --filter "status=restarting" | grep toptracksbot` || echo $check
+          if [[ -n $check ]];
+          then
+          echo $check | awk '{print $NF}' | xargs docker logs && echo "FAILED" && exit 1;
+          else
+          echo "PASSED" && exit 0;
+          fi
