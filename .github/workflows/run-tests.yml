@@ -18,7 +18,9 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
-      
+        with:
+          fetch-depth: 0
+
       - name: Prepare .env
         env:
           TTBOT_LASTFM_API_KEY: ${{ secrets.TTBOT_LASTFM_API_KEY }}
