@@ -18,12 +18,17 @@ jobs:
         uses: actions/checkout@v2
       
       - name: Prepare .env
+        env:
+          TTBOT_LASTFM_API_KEY: ${{ secrets.TTBOT_LASTFM_API_KEY }}
+          TTBOT_YOUTUBE_API_KEY: ${{ secrets.TTBOT_YOUTUBE_API_KEY }}
         run: |
           sed -i "s#TTBOT_LASTFM_API_KEY=.*#TTBOT_LASTFM_API_KEY=${TTBOT_LASTFM_API_KEY}#" .env_example
           sed -i "s#TTBOT_YOUTUBE_API_KEY=.*#TTBOT_YOUTUBE_API_KEY=${TTBOT_YOUTUBE_API_KEY}#" .env_example
           mv .env_example .env
           
       - name: Enable codecov
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
         run: |
           echo "codecov" >> ./tests/requirements.txt
           sed -i '$s#$# \&\& codecov#' ./tests/Dockerfile
@@ -42,6 +47,8 @@ jobs:
         uses: actions/checkout@v2
         
       - name: Prepare .env
+        env:
+          TTBOT_TOKEN: ${{ secrets.TTBOT_TOKEN }}
         run: |
           sed -i "s#TTBOT_TOKEN=.*#TTBOT_TOKEN=${TTBOT_TOKEN}#" .env_example
           mv .env_example .env
