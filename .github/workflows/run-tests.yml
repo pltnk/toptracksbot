@@ -32,7 +32,7 @@ jobs:
         run: |
           mkdir shared
           sed -i '$s#$# --cov-report term --cov-report xml \&\& mv coverage.xml /shared#' ./tests/Dockerfile
-          docker-compose run --rm -v "$PWD/shared:/shared" tests
+          docker-compose run --rm -v ./shared:/shared tests
       
       - name: Upload coverage report
         uses: codecov/codecov-action@v2
