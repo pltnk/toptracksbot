@@ -18,8 +18,6 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
 
       - name: Prepare .env
         env:
@@ -41,7 +39,7 @@ jobs:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
         run: |
           ci_env=`bash <(curl -s https://codecov.io/env)`
-          docker-compose run --rm $ci_env -e CI=true tests
+          docker-compose run --rm $ci_env tests
   
   test_build:
   
