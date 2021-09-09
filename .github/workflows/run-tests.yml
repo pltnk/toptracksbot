@@ -5,10 +5,10 @@ on:
     - cron: '0 0 * * MON'
   push:
     branches: [ main ]
-    paths-ignore: [ '**/README.md' ]
+    paths-ignore: [ '**/README.md', '**/.gitignore', '**/LICENSE', '**/Procfile', '**/runtime.txt' ]
   pull_request:
     branches: [ main ]
-    paths-ignore: [ '**/README.md' ]
+    paths-ignore: [ '**/README.md', '**/.gitignore', '**/LICENSE', '**/Procfile', '**/runtime.txt' ]
 
 jobs:
   run_tests:
@@ -29,16 +29,15 @@ jobs:
           mv .env_example .env
           
       - name: Enable codecov
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
         run: |
           echo "codecov" >> ./tests/requirements.txt
           sed -i '$s#$# \&\& codecov#' ./tests/Dockerfile
-          ci_env=`bash <(curl -s https://codecov.io/env)`
           
-      - name: Run tests
+      - name: Run tests with coverage
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
         run: |
-          echo $ci_env
+          ci_env=`bash <(curl -s https://codecov.io/env)`
           docker-compose run --rm $ci_env -e CI=true tests
   
   test_build:
