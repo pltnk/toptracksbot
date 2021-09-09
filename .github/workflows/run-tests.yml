@@ -34,7 +34,7 @@ jobs:
         run: |
           sed -i '$ i\ADD https://uploader.codecov.io/latest/linux/codecov /opt/codecov' ./tests/Dockerfile
           sed -i '$ i\RUN chmod +x /opt/codecov' ./tests/Dockerfile
-          sed -i '$s#$# --cov-report xml \&\& /opt/codecov#' ./tests/Dockerfile
+          sed -i '$s#$# --cov-report term --cov-report xml \&\& /opt/codecov#' ./tests/Dockerfile
           
       - name: Run tests with coverage
         env:
