@@ -18,8 +18,6 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
       
       - name: Prepare .env
         env:
@@ -33,8 +31,9 @@ jobs:
       - name: Enable codecov
         run: |
           echo "codecov" >> ./tests/requirements.txt
-          sed -i '$ i\RUN apt update && apt install -y git' ./tests/Dockerfile
-          sed -i '$s#$# \&\& codecov#' ./tests/Dockerfile
+          sed -i '$ i\ADD https://uploader.codecov.io/latest/linux/codecov /opt/codecov' ./tests/Dockerfile
+          sed -i '$ i\RUN chmod +x codecov /opt/codecov' ./tests/Dockerfile
+          sed -i '$s#$# \&\& ./opt/codecov#' ./tests/Dockerfile
           
       - name: Run tests with coverage
         env:
