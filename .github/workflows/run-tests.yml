@@ -38,6 +38,7 @@ jobs:
           
       - name: Run tests
         run: |
+          echo $ci_env
           docker-compose run --rm $ci_env -e CI=true tests
   
   test_build:
