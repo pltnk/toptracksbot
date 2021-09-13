@@ -5,8 +5,6 @@ Copyright (c) 2019-2021 Kirill Plotnikov
 GitHub: https://github.com/pltnk/toptracksbot
 """
 
-
-import json
 import logging
 import re
 from typing import List
@@ -36,7 +34,7 @@ async def get_playlist_api(keyphrase: str, number: int = 3) -> List[str]:
             f"&autocorrect[1]&api_key={LASTFM_API_KEY}&format=json"
         )
     res.raise_for_status()
-    parsed = json.loads(res.text)
+    parsed = res.json()
     artist = parsed["toptracks"]["@attr"]["artist"]
     tracks = parsed["toptracks"]["track"]
     playlist = [
@@ -104,7 +102,7 @@ async def get_bio_api(keyphrase: str, name_only: bool = False) -> str:
             f"&api_key={LASTFM_API_KEY}&format=json"
         )
     res.raise_for_status()
-    parsed = json.loads(res.text)
+    parsed = res.json()
     name = parsed["artist"]["name"]
     if name_only:
         return name
@@ -183,7 +181,7 @@ async def get_corrected_name_api(keyphrase: str) -> str:
             f"&api_key={LASTFM_API_KEY}&format=json"
         )
     res.raise_for_status()
-    parsed = json.loads(res.text)
+    parsed = res.json()
     name = parsed["corrections"]["correction"]["artist"]["name"]
     return name
 
