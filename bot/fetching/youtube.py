@@ -40,7 +40,7 @@ async def get_yt_id_api(track: str) -> str:
     if res.status_code == 403:
         raise ResourceWarning("YouTube API quota has reached the limit")
     res.raise_for_status()
-    parsed = json.loads(res.text)
+    parsed = res.json()
     video_id = parsed["items"][0]["id"]["videoId"]
     return video_id
 
