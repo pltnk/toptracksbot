@@ -42,7 +42,7 @@ You can deploy this bot yourself using Docker and docker-compose.
    - `TTBOT_VALID_FOR_DAYS` - Number of days for which information about the artist's top three tracks is cached in the database (default `30`)
     
    Check an [example of `.env` file](./.env_example).
-4. Run tests using command `docker-compose run --rm tests || sleep 5 && docker-compose rm -s -f test_db && docker image rm -f toptracksbot_test_db toptracksbot_tests` (this will run tests in a container and remove test containers and images after)
+4. Run tests using command `docker-compose run --rm tests || sleep 5 && docker-compose rm -s -f test_db && docker image rm -f toptracksbot_tests` (this will run tests in a container and remove test containers and images after)
 5. Start the bot using command `docker-compose up -d` (this will build images for the bot, database and start containers with them)
 
 ## Built With
