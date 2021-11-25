@@ -16,8 +16,7 @@ async def ping_db(db_uri: str, retries: int, timeout: int) -> None:
         try:
             conn = await asyncpg.connect(dsn=db_uri)
         except Exception as e:
-            print(f"Postgres is unavailable: {repr(e)}")
-            print(f"Sleeping for {timeout} seconds")
+            print(f"Postgres is unavailable: {repr(e)}, waiting for {timeout} seconds")
             await asyncio.sleep(timeout)
         else:
             print("Postgres is ready")

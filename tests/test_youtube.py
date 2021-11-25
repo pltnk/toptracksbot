@@ -29,7 +29,7 @@ async def test_get_yt_id(
         res = await func(track)
         assert res == expected_yt_ids[counter]
     with pytest.raises(Exception):
-        await func(bad_keyphrase)
+        await func(None)
 
 
 async def test_get_yt_ids(playlist: List[str], expected_yt_ids: List[str]) -> None:
