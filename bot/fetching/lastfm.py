@@ -27,7 +27,7 @@ async def get_playlist_api(keyphrase: str, number: int = 3) -> List[str]:
     :param number: Number of top tracks to collect.
     :return: List of top tracks formatted as '<artist> - <track>'.
     """
-    async with httpx.AsyncClient() as client:
+    async with httpx.AsyncClient(follow_redirects=True) as client:
         res = await client.get(
             f"https://ws.audioscrobbler.com/2.0/"
             f"?method=artist.gettoptracks&artist={_quote(keyphrase)}&limit={number}"
@@ -50,7 +50,7 @@ async def get_playlist_noapi(keyphrase: str, number: int = 3) -> List[str]:
     :param number: Number of top tracks to collect.
     :return: List of top tracks formatted as '<artist> - <track>'.
     """
-    async with httpx.AsyncClient() as client:
+    async with httpx.AsyncClient(follow_redirects=True) as client:
         res = await client.get(
             f"https://www.last.fm/music/{_quote(keyphrase)}/+tracks?date_preset=ALL"
         )
@@ -95,7 +95,7 @@ async def get_bio_api(keyphrase: str, name_only: bool = False) -> str:
     :param name_only: If True return only artist's name.
     :return: Either just a name of an artist or their short bio.
     """
-    async with httpx.AsyncClient() as client:
+    async with httpx.AsyncClient(follow_redirects=True) as client:
         res = await client.get(
             f"https://ws.audioscrobbler.com/2.0/"
             f"?method=artist.getinfo&artist={_quote(keyphrase)}&autocorrect[1]"
@@ -125,7 +125,7 @@ async def get_bio_noapi(keyphrase: str, name_only: bool = False) -> str:
     :param name_only: If True return only artist's name.
     :return: Either just a name of an artist or their short bio.
     """
-    async with httpx.AsyncClient() as client:
+    async with httpx.AsyncClient(follow_redirects=True) as client:
         res = await client.get(f"https://www.last.fm/music/{_quote(keyphrase)}/+wiki")
     res.raise_for_status()
     soup = bs4.BeautifulSoup(res.content, "lxml")
@@ -174,7 +174,7 @@ async def get_corrected_name_api(keyphrase: str) -> str:
     :param keyphrase: Name of an artist or a band.
     :return: Corrected artist name.
     """
-    async with httpx.AsyncClient() as client:
+    async with httpx.AsyncClient(follow_redirects=True) as client:
         res = await client.get(
             f"https://ws.audioscrobbler.com/2.0/"
             f"?method=artist.getcorrection&artist={_quote(keyphrase)}"
