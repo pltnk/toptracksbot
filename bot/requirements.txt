@@ -1,5 +1,5 @@
 asyncpg==0.23.0
 beautifulsoup4==4.9.3
 httpx==0.18.2
-lxml==4.6.5
+lxml==4.9.1
 python-telegram-bot==13.7
