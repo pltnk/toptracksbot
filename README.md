@@ -1,6 +1,6 @@
 # Top Tracks Bot for Telegram
 [![Telegram](https://img.shields.io/badge/telegram-%40toptracksbot-informational)](https://t.me/toptracksbot)
-[![Build Status](https://img.shields.io/github/workflow/status/pltnk/toptracksbot/Run%20tests)](https://github.com/pltnk/toptracksbot/actions/workflows/run-tests.yml)
+[![Build Status](https://img.shields.io/github/actions/workflow/status/pltnk/toptracksbot/run-tests.yml?branch=main)](https://github.com/pltnk/toptracksbot/actions/workflows/run-tests.yml)
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/cae4d1afa23240e1a7ca996f7b0d92b8)](https://www.codacy.com/gh/pltnk/toptracksbot/dashboard)
 [![codecov](https://codecov.io/gh/pltnk/toptracksbot/branch/main/graph/badge.svg?token=8K09IYN9SR)](https://codecov.io/gh/pltnk/toptracksbot)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
