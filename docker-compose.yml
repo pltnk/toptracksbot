@@ -39,6 +39,8 @@ services:
       POSTGRES_PASSWORD: ${TTBOT_DATABASE_PASS:-toptracks}
       POSTGRES_DB: toptracksbot
       PGDATA: /var/toptracksbot/data
+    profiles:
+      - test
 
   tests:
     build:
@@ -49,3 +51,5 @@ services:
     env_file: .env
     depends_on:
       - test_db
+    profiles:
+      - test
