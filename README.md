@@ -6,9 +6,9 @@
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![License](https://img.shields.io/github/license/pltnk/top_tracks)](https://choosealicense.com/licenses/mit/)
 
-This bot fetches video from YouTube for the top three tracks of all time by specified artist according to Last.fm charts.
+This bot fetches videos from YouTube for the top three best tracks of all time by a specified artist according to Last.fm charts.
 
-The bot is deployed on Heroku and you can try it in Telegram: [@toptracksbot](http://t.me/toptracksbot)
+You can try it in Telegram: [@toptracksbot](https://t.me/toptracksbot)
 
 ## Usage
 
@@ -25,10 +25,10 @@ https://user-images.githubusercontent.com/807774/126999133-1e5ccd79-fcbf-4038-8c
 
 ## Deployment
 
-You can deploy this bot yourself using Docker and docker-compose.
-1. Install [Docker](https://docs.docker.com/get-docker/) and [docker-compose](https://docs.docker.com/compose/install/)
+You can deploy this bot yourself using Docker and Docker Compose.
+1. Install [Docker](https://docs.docker.com/get-docker/) and [Docker Compose](https://docs.docker.com/compose/install/)
 2. Clone this repository
-3. Create `.env` file at the root of cloned repo with the following variables declared there:
+3. Create `.env` file at the root of the cloned repo with the following variables declared there:
    
    Required:
    - `TTBOT_TOKEN` - Auth token of your Telegram bot ([how to get](https://core.telegram.org/bots#3-how-do-i-create-a-bot))
@@ -42,8 +42,8 @@ You can deploy this bot yourself using Docker and docker-compose.
    - `TTBOT_VALID_FOR_DAYS` - Number of days for which information about the artist's top three tracks is cached in the database (default `30`)
     
    Check an [example of `.env` file](./.env_example).
-4. Run tests using command `docker-compose run --rm tests || sleep 5 && docker-compose rm -s -f test_db && docker image rm -f toptracksbot_tests` (this will run tests in a container and remove test containers and images after)
-5. Start the bot using command `docker-compose up -d` (this will build images for the bot, database and start containers with them)
+4. Run tests using command `docker compose run --rm tests; docker compose --profile test down --rmi all` (this will run tests in a container and remove test containers and images afterward)
+5. Start the bot using command `docker compose up -d` (this will build images for the bot, database and start containers with them)
 
 ## Built With
 * [python-telegram-bot](https://github.com/python-telegram-bot/python-telegram-bot) - This library provides a pure Python interface for the Telegram Bot API.
